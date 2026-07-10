@@ -180,13 +180,28 @@ class ScenarioOut(BaseModel):
     professional_script: ProfessionalScript | dict
     status: str
     copy_unlocked: bool = False
-    copy_unlock_cost: int = 1
+    copy_unlock_cost: int = 5
+    produce_credit_cost: int = 100
+    discuss_credit_cost: int = 10
     critique: dict | None = None
     discussion: list[DiscussionMessage] = []
     created_at: datetime
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PricingOut(BaseModel):
+    credit_usd: float
+    markup: float
+    scenario: int
+    discuss: int
+    refine: int
+    copy_unlock: int
+    produce_by_duration: dict[str, int]
+    cogs_notes: dict[str, str]
+    initial_credits: int
+    full_30s_bundle: int
 
 
 # --- Jobs (Modül 3 / 4) ---

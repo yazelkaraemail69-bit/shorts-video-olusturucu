@@ -10,8 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.models import ApiKey, ApiProvider, User
-from app.security import decrypt_api_key
+from app.models import User
+from app.services.director.integration import resolve_openrouter_key
 
 REFINE_SYSTEM = """
 SEN: YouTube Shorts uzmanı + profesyonel video editörüsün.
@@ -29,15 +29,7 @@ Yanıt SADECE JSON:
 
 
 def _get_openrouter_key(db: Session, user: User) -> str | None:
-    row = db.scalar(
-        select(ApiKey).where(
-            ApiKey.user_id == user.id,
-            ApiKey.provider == ApiProvider.openrouter,
-        )
-    )
-    if not row:
-        return None
-    return decrypt_api_key(row.key_encrypted)
+    return resolve_openrouter_key(db, user)
 
 
 def _extract_json(text: str) -> dict[str, Any]:

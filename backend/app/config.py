@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     encryption_key: str = ""
 
-    initial_credits: int = 10
+    initial_credits: int = 130
 
     # --- AI 1: Senaryo (OpenRouter / Claude) ---
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
@@ -45,9 +45,13 @@ class Settings(BaseSettings):
 
     mock_ai: bool = True
 
-    produce_credit_cost: int = 1
-    refine_credit_cost: int = 1
-    copy_unlock_credit_cost: int = 1
+    # Kredi fiyatları (0 = services.pricing otomatik COGS×marj hesabı)
+    # 30 sn referans üretim: ~100 kredi (5×Flux + TTS, ~%65 marj)
+    scenario_credit_cost: int = 15
+    produce_credit_cost: int = 100  # 30 sn referans; süreye göre ölçeklenir
+    discuss_credit_cost: int = 10
+    refine_credit_cost: int = 35
+    copy_unlock_credit_cost: int = 5
 
     media_dir: str = "./data/media"
     admin_email: str = ""

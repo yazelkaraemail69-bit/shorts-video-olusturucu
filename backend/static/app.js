@@ -9,7 +9,12 @@ const state = {
   scenarioId: null,
   jobId: null,
   copyUnlocked: false,
-  copyUnlockCost: 1,
+  copyUnlockCost: 5,
+  produceCost: 100,
+  discussCost: 10,
+  scenarioCost: 15,
+  refineCost: 35,
+  pricing: null,
   lastScenario: null,
 };
 
@@ -22,6 +27,85 @@ function setError(el, msg) {
   }
   el.hidden = false;
   el.textContent = msg;
+}
+
+function mediaUrl(path) {
+  if (!path) return "";
+  const sep = path.includes("?") ? "&" : "?";
+  const token = state.token ? `access_token=${encodeURIComponent(state.token)}&` : "";
+  return `${path}${sep}${token}t=${Date.now()}`;
+}
+
+function setWorking(on, text) {
+  const overlay = $("#workOverlay");
+  if (!overlay) return;
+  overlay.hidden = !on;
+  if (text) {
+    const label = $("#workOverlayText");
+    if (label) label.textContent = text;
+  }
+}
+
+async function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function pollJob(jobId, { label } = {}) {
+  const terminal = new Set(["completed", "failed"]);
+  for (let i = 0; i < 90; i++) {
+    const job = await api(`/jobs/${jobId}`);
+    renderJob(job, { soft: true });
+    const statusLabel = label || "Üretiliyor";
+    setWorking(true, `${statusLabel}… (${job.status})`);
+    if (terminal.has(job.status)) {
+      if (job.status === "failed") {
+        throw new Error(job.error_message || "Üretim başarısız");
+      }
+      return job;
+    }
+    await sleep(2000);
+  }
+  throw new Error("Üretim zaman aşımı — işler sayfasından tekrar kontrol edin");
+}
+
+async function loadHistory() {
+  const box = $("#historyList");
+  if (!box) return;
+  try {
+    const rows = await api("/scenarios");
+    if (!rows.length) {
+      box.innerHTML = `<p class="lede tight">Henüz kayıt yok.</p>`;
+      return;
+    }
+    box.innerHTML = rows
+      .slice(0, 12)
+      .map((s) => {
+        const title = escapeHtml(s.title || s.professional_script?.title || `Senaryo #${s.id}`);
+        const meta = escapeHtml(
+          `${(s.language || "tr").toUpperCase()} · ${s.duration_seconds || "—"}s · ${s.status || ""}`
+        );
+        return `<button type="button" class="history-item" data-id="${s.id}"><strong>${title}</strong><span>${meta}</span></button>`;
+      })
+      .join("");
+    box.querySelectorAll(".history-item").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        setWorking(true, "Senaryo yükleniyor…");
+        try {
+          const scenario = await api(`/scenarios/${btn.dataset.id}`);
+          renderScenario(scenario);
+          const jobs = await api("/jobs");
+          const related = (jobs || []).find((j) => j.scenario_id === scenario.id);
+          if (related) renderJob(related);
+        } catch (err) {
+          setError($("#scenarioError"), err.message);
+        } finally {
+          setWorking(false);
+        }
+      });
+    });
+  } catch {
+    box.innerHTML = `<p class="lede tight">Geçmiş yüklenemedi.</p>`;
+  }
 }
 
 async function api(path, { method = "GET", body, auth = true } = {}) {
@@ -79,18 +163,75 @@ async function refreshMe() {
   }
 }
 
+async function loadPricing() {
+  try {
+    const p = await api("/credits/pricing", { auth: false });
+    state.pricing = p;
+    state.scenarioCost = p.scenario;
+    state.discussCost = p.discuss;
+    state.refineCost = p.refine;
+    state.copyUnlockCost = p.copy_unlock;
+    const dur = Number($("#scenarioForm")?.duration_seconds?.value || 30);
+    state.produceCost = Number(p.produce_by_duration?.[String(dur)] || p.produce_by_duration?.["30"] || 100);
+    updateCostLabels();
+  } catch {
+    /* fiyat tablosu opsiyonel */
+  }
+}
+
+function produceCostForDuration(seconds) {
+  const key = String(seconds);
+  const map = state.pricing?.produce_by_duration || {};
+  if (map[key] != null) return map[key];
+  // En yakın basamak
+  const keys = Object.keys(map).map(Number).sort((a, b) => a - b);
+  if (!keys.length) return state.produceCost;
+  let best = keys[0];
+  for (const k of keys) {
+    if (seconds >= k) best = k;
+  }
+  return map[String(best)] || state.produceCost;
+}
+
+function updateCostLabels() {
+  const convertBtn = $("#convertBtn");
+  if (convertBtn && !convertBtn.disabled) {
+    convertBtn.textContent = `AI1: Viral Senaryo Yaz (${state.scenarioCost} kredi)`;
+  }
+  const discussBtn = $("#discussBtn");
+  if (discussBtn && !discussBtn.disabled) {
+    discussBtn.textContent = `Gönder & uygula (${state.discussCost} kredi)`;
+  }
+  const produceBtn = $("#produceBtn");
+  if (produceBtn && !produceBtn.disabled) {
+    produceBtn.textContent = `AI2+AI3: Görsel Üret & Kurguya Ver (${state.produceCost} kredi)`;
+  }
+  const refineBtn = $("#refineBtn");
+  if (refineBtn && !refineBtn.disabled) {
+    refineBtn.textContent = `Revize et (${state.refineCost} kredi)`;
+  }
+  const unlockBtn = $("#unlockCopyBtn");
+  if (unlockBtn && !unlockBtn.hidden && !state.copyUnlocked) {
+    unlockBtn.textContent = `Kopyalamayı aç (${state.copyUnlockCost} kredi)`;
+  }
+}
+
 async function boot() {
   if (!state.token) {
     showAuth();
+    await loadPricing();
     return;
   }
   try {
     await refreshMe();
     showStudio();
+    await loadPricing();
+    await loadHistory();
   } catch {
     state.token = "";
     localStorage.removeItem(TOKEN_KEY);
     showAuth();
+    await loadPricing();
   }
 }
 
@@ -120,6 +261,7 @@ $("#loginForm").addEventListener("submit", async (e) => {
     localStorage.setItem(TOKEN_KEY, state.token);
     await refreshMe();
     showStudio();
+    await loadHistory();
   } catch (err) {
     setError($("#authError"), err.message);
   }
@@ -144,6 +286,7 @@ $("#registerForm").addEventListener("submit", async (e) => {
     localStorage.setItem(TOKEN_KEY, state.token);
     await refreshMe();
     showStudio();
+    await loadHistory();
   } catch (err) {
     setError($("#authError"), err.message);
   }
@@ -211,7 +354,9 @@ function renderScenario(scenario) {
   state.scenarioId = scenario.id;
   state.lastScenario = scenario;
   state.copyUnlocked = !!scenario.copy_unlocked || !!(state.user && state.user.unlimited_credits);
-  state.copyUnlockCost = scenario.copy_unlock_cost || 1;
+  state.copyUnlockCost = scenario.copy_unlock_cost || state.copyUnlockCost || 5;
+  state.produceCost = scenario.produce_credit_cost || state.produceCost;
+  state.discussCost = scenario.discuss_credit_cost || state.discussCost;
 
   const script = scenario.professional_script || {};
   $("#resultEmpty").hidden = true;
@@ -264,6 +409,7 @@ function renderScenario(scenario) {
   });
 
   renderDiscussion(scenario.discussion || []);
+  updateCostLabels();
 }
 
 function renderDiscussion(messages) {
@@ -320,7 +466,7 @@ async function copyScenarioText() {
   }
 }
 
-function renderJob(job) {
+function renderJob(job, { soft = false } = {}) {
   state.jobId = job.id;
   $("#playerSection").hidden = false;
   $("#jobMeta").textContent = `İş #${job.id} · rev ${job.revision} · ${job.status}`;
@@ -330,26 +476,25 @@ function renderJob(job) {
   const frame = $("#previewFrame");
   const audio = $("#audioPlayer");
   const dl = $("#downloadVideo");
-  const bust = Date.now();
 
   if (job.video_url && String(job.video_url).endsWith(".mp4")) {
     video.hidden = false;
     frame.hidden = true;
-    video.src = `${job.video_url}?t=${bust}`;
+    video.src = mediaUrl(job.video_url);
     video.load();
     if (dl) {
       dl.hidden = false;
-      dl.href = job.video_url;
+      dl.href = mediaUrl(job.video_url);
     }
   } else if (job.preview_url) {
     video.hidden = true;
     frame.hidden = false;
-    frame.src = `${job.preview_url}?t=${bust}`;
+    frame.src = mediaUrl(job.preview_url);
     if (dl) dl.hidden = true;
   }
 
   if (job.audio_url) {
-    audio.src = `${job.audio_url}?t=${bust}`;
+    audio.src = mediaUrl(job.audio_url);
   }
 
   const critiqueBox = $("#critiqueBox");
@@ -378,13 +523,12 @@ function renderJob(job) {
     thumbs.innerHTML = imgs
       .map(
         (s) =>
-          `<img src="${escapeHtml(s.url)}?t=${bust}" alt="Sahne ${s.index}" title="Sahne ${s.index}" />`
+          `<img src="${escapeHtml(mediaUrl(s.url))}" alt="Sahne ${s.index}" title="Sahne ${s.index}" />`
       )
       .join("");
   }
 
-  // Senaryo panelini güncel snapshot ile yenile
-  if (job.script_snapshot) {
+  if (!soft && job.script_snapshot) {
     const base = state.lastScenario || {};
     renderScenario({
       id: job.scenario_id,
@@ -431,6 +575,7 @@ $("#scenarioForm").addEventListener("submit", async (e) => {
   const btn = $("#convertBtn");
   btn.disabled = true;
   btn.textContent = "Çevriliyor…";
+  setWorking(true, "AI1 senaryo yazıyor…");
   const fd = new FormData(e.target);
   try {
     const scenario = await api("/scenarios/professionalize", {
@@ -446,11 +591,13 @@ $("#scenarioForm").addEventListener("submit", async (e) => {
     });
     renderScenario(scenario);
     await refreshMe();
+    await loadHistory();
   } catch (err) {
     setError($("#scenarioError"), err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "AI1: Viral Senaryo Yaz";
+    btn.textContent = `AI1: Viral Senaryo Yaz (${state.scenarioCost} kredi)`;
+    setWorking(false);
   }
 });
 
@@ -476,6 +623,7 @@ $("#discussBtn").addEventListener("click", async () => {
   const btn = $("#discussBtn");
   btn.disabled = true;
   btn.textContent = "Uygulanıyor…";
+  setWorking(true, "Yönetmen senaryoyu güncelliyor…");
   try {
     const scenario = await api(`/scenarios/${state.scenarioId}/discuss`, {
       method: "POST",
@@ -488,7 +636,8 @@ $("#discussBtn").addEventListener("click", async () => {
     setError($("#discussError"), err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "Gönder & uygula";
+    btn.textContent = `Gönder & uygula (${state.discussCost} kredi)`;
+    setWorking(false);
   }
 });
 
@@ -500,20 +649,24 @@ $("#produceBtn").addEventListener("click", async () => {
   }
   const btn = $("#produceBtn");
   btn.disabled = true;
-    btn.textContent = "AI2+AI3 çalışıyor…";
+  btn.textContent = "Kuyruğa alındı…";
+  setWorking(true, "AI2+AI3 pipeline başlıyor…");
   try {
-    const job = await api("/jobs/produce", {
+    const queued = await api("/jobs/produce", {
       method: "POST",
       body: { scenario_id: state.scenarioId },
     });
+    renderJob(queued, { soft: true });
+    $("#playerSection").scrollIntoView({ behavior: "smooth", block: "start" });
+    const job = await pollJob(queued.id, { label: "AI2 görsel + AI3 kurgu" });
     renderJob(job);
     await refreshMe();
-    $("#playerSection").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
     setError($("#produceError"), err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "AI2+AI3: Görsel Üret & Kurguya Ver";
+    btn.textContent = `AI2+AI3: Görsel Üret & Kurguya Ver (${state.produceCost} kredi)`;
+    setWorking(false);
   }
 });
 
@@ -530,7 +683,8 @@ $("#refineBtn").addEventListener("click", async () => {
   }
   const btn = $("#refineBtn");
   btn.disabled = true;
-    btn.textContent = "Revize ediliyor…";
+  btn.textContent = "Revize ediliyor…";
+  setWorking(true, "Revizyon uygulanıyor…");
   try {
     const job = await api(`/jobs/${state.jobId}/refine`, {
       method: "POST",
@@ -543,8 +697,18 @@ $("#refineBtn").addEventListener("click", async () => {
     setError($("#refineError"), err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "Revize et";
+    btn.textContent = `Revize et (${state.refineCost} kredi)`;
+    setWorking(false);
   }
 });
+
+const durationInput = $("#scenarioForm")?.querySelector('[name="duration_seconds"]');
+if (durationInput) {
+  durationInput.addEventListener("change", () => {
+    const dur = Number(durationInput.value || 30);
+    state.produceCost = produceCostForDuration(dur);
+    updateCostLabels();
+  });
+}
 
 boot();

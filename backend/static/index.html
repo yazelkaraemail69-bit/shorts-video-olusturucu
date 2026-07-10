@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Video API Merkezi</title>
+  <title>Shorts Video Oluşturucu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -16,7 +16,7 @@
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Master AI Yönetmen</span>
+      <span class="brand-name">Shorts Video Oluşturucu</span>
     </div>
     <div class="topbar-right" id="userBar" hidden>
       <span class="credit-chip" id="creditChip">— kredi</span>
@@ -96,10 +96,17 @@
                 placeholder="Fikir notu yaz (kopyalanmaz). Örn: kahve markası yaz kampanyası — serinlik + şehir enerjisi"></textarea>
             </label>
             <button type="submit" class="primary-btn" id="convertBtn">
-              AI1: Viral Senaryo Yaz
+              AI1: Viral Senaryo Yaz (15 kredi)
             </button>
             <p class="form-error" id="scenarioError" hidden></p>
           </form>
+
+          <div class="history-block" id="historyBlock">
+            <h3 class="history-title">Geçmiş senaryolar</h3>
+            <div class="history-list" id="historyList">
+              <p class="lede tight">Henüz kayıt yok.</p>
+            </div>
+          </div>
         </div>
 
         <aside class="result" id="resultPanel" aria-live="polite">
@@ -123,7 +130,7 @@
             </div>
             <p class="scenario-id">Senaryo #<span id="resultId"></span> kaydedildi</p>
             <div class="copy-actions">
-              <button type="button" class="ghost-btn" id="unlockCopyBtn" hidden>Kopyalamayı aç (1 kredi)</button>
+              <button type="button" class="ghost-btn" id="unlockCopyBtn" hidden>Kopyalamayı aç (5 kredi)</button>
               <button type="button" class="primary-btn" id="copyScenarioBtn" hidden>Senaryoyu kopyala</button>
             </div>
             <p class="form-error" id="copyError" hidden></p>
@@ -137,12 +144,12 @@
                 <textarea id="discussInput" rows="3" maxlength="2000"
                   placeholder="Örn. Hook daha sert olsun / Sahne 3 anlatımını kısalt / CTA’yı değiştir"></textarea>
               </label>
-              <button type="button" class="primary-btn" id="discussBtn">Gönder & uygula</button>
+              <button type="button" class="primary-btn" id="discussBtn">Gönder & uygula (10 kredi)</button>
               <p class="form-error" id="discussError" hidden></p>
             </div>
 
             <button type="button" class="primary-btn produce-btn" id="produceBtn">
-              AI2+AI3: Görsel Üret & Kurguya Ver
+              AI2+AI3: Görsel Üret & Kurguya Ver (100 kredi)
             </button>
             <p class="form-error" id="produceError" hidden></p>
           </div>
@@ -172,7 +179,7 @@
               <textarea id="refineInput" rows="4" maxlength="2000"
                 placeholder="Örn. Sahne 2 çok yavaş / Hook daha çarpıcı olsun / Sahne 3 görselini daha sinematik yap"></textarea>
             </label>
-            <button type="button" class="primary-btn" id="refineBtn">Revize et</button>
+            <button type="button" class="primary-btn" id="refineBtn">Revize et (35 kredi)</button>
             <p class="form-error" id="refineError" hidden></p>
             <div id="revisionList" class="revision-list"></div>
           </div>
@@ -200,6 +207,13 @@
       </div>
     </form>
   </dialog>
+
+  <div class="work-overlay" id="workOverlay" hidden>
+    <div class="work-card">
+      <div class="work-spinner" aria-hidden="true"></div>
+      <p id="workOverlayText">Çalışıyor…</p>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>

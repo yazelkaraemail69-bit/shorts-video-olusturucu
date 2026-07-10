@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.admin_access import has_unlimited_credits
-from app.config import get_settings
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import Scenario, User
@@ -21,6 +20,12 @@ from app.schemas import (
 from app.services.credits import apply_credit_change
 from app.services.director.ai1_scenario import run_scenario_agent
 from app.services.director.critique import apply_critique_feedback, build_critique_report
+from app.services.pricing import (
+    copy_unlock_credit_cost,
+    discuss_credit_cost,
+    produce_credit_cost,
+    scenario_credit_cost,
+)
 
 router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
@@ -128,7 +133,6 @@ def _display_script(script: dict, unlocked: bool) -> dict:
 
 
 def _to_out(row: Scenario, user: User | None = None) -> ScenarioOut:
-    settings = get_settings()
     unlocked = bool(getattr(row, "copy_unlocked", False))
     if user is not None and has_unlimited_credits(user):
         unlocked = True
@@ -158,7 +162,9 @@ def _to_out(row: Scenario, user: User | None = None) -> ScenarioOut:
         professional_script=_display_script(full_script, unlocked),
         status=row.status,
         copy_unlocked=unlocked,
-        copy_unlock_cost=settings.copy_unlock_credit_cost,
+        copy_unlock_cost=copy_unlock_credit_cost(),
+        produce_credit_cost=produce_credit_cost(row.duration_seconds),
+        discuss_credit_cost=discuss_credit_cost(),
         critique=critique,
         discussion=discussion,
         created_at=row.created_at,
@@ -172,16 +178,45 @@ async def professionalize(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ScenarioOut:
-    result = await run_scenario_agent(
+    cost = scenario_credit_cost()
+    apply_credit_change(
         db,
         user,
-        language=payload.language,
-        title=payload.title,
-        duration_seconds=payload.duration_seconds,
-        style=payload.style,
-        audience=payload.audience,
-        raw_input=payload.raw_input.strip(),
+        -cost,
+        "AI1 senaryo üretimi",
+        reference_type="scenario",
+        reference_id=None,
     )
+
+    try:
+        result = await run_scenario_agent(
+            db,
+            user,
+            language=payload.language,
+            title=payload.title,
+            duration_seconds=payload.duration_seconds,
+            style=payload.style,
+            audience=payload.audience,
+            raw_input=payload.raw_input.strip(),
+        )
+    except Exception as exc:  # noqa: BLE001
+        apply_credit_change(
+            db,
+            user,
+            cost,
+            "Senaryo iadesi",
+            reference_type="refund",
+            reference_id=None,
+            allow_negative=True,
+        )
+        db.commit()
+        if isinstance(exc, HTTPException):
+            raise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Senaryo hatası: {exc}",
+        ) from exc
+
     script = result["script"]
 
     store = dict(script)
@@ -231,20 +266,39 @@ async def discuss_scenario(
     if row is None or row.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Senaryo bulunamadı")
 
-    settings = get_settings()
+    cost = discuss_credit_cost()
     apply_credit_change(
         db,
         user,
-        -settings.refine_credit_cost,
+        -cost,
         "Senaryo tartışma / revizyon",
         reference_type="scenario_discuss",
         reference_id=str(row.id),
     )
 
     before = _parse_script(row.professional_script)
-    feedback = await apply_critique_feedback(
-        db, user, script=before, instruction=payload.message.strip()
-    )
+    try:
+        feedback = await apply_critique_feedback(
+            db, user, script=before, instruction=payload.message.strip()
+        )
+    except Exception as exc:  # noqa: BLE001
+        apply_credit_change(
+            db,
+            user,
+            cost,
+            "Tartışma iadesi",
+            reference_type="refund",
+            reference_id=str(row.id),
+            allow_negative=True,
+        )
+        db.commit()
+        if isinstance(exc, HTTPException):
+            raise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Tartışma hatası: {exc}",
+        ) from exc
+
     after = feedback["script"]
     changed = feedback.get("changed_fields") or []
     summary = feedback.get("summary") or "Senaryo güncellendi."
@@ -305,11 +359,10 @@ def unlock_copy(
         db.refresh(row)
         return _to_out(row, user)
 
-    settings = get_settings()
     apply_credit_change(
         db,
         user,
-        -settings.copy_unlock_credit_cost,
+        -copy_unlock_credit_cost(),
         "Senaryo kopyalama kilidi",
         reference_type="scenario_copy_unlock",
         reference_id=str(row.id),

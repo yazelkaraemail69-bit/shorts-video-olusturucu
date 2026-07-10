@@ -3,12 +3,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import get_admin_user, get_current_user
 from app.models import CreditTransaction, User
-from app.schemas import CreditAdjust, CreditBalanceOut, CreditTransactionOut
+from app.schemas import CreditAdjust, CreditBalanceOut, CreditTransactionOut, PricingOut
 from app.services.credits import apply_credit_change, ensure_balance_row
+from app.services.pricing import pricing_dict
 
 router = APIRouter(prefix="/credits", tags=["credits"])
+
+
+@router.get("/pricing", response_model=PricingOut)
+def get_pricing() -> PricingOut:
+    """Herkese açık fiyat tablosu (giriş gerekmez)."""
+    return PricingOut(**pricing_dict())
 
 
 @router.get("", response_model=CreditBalanceOut)
@@ -39,19 +46,16 @@ def list_transactions(
 @router.post("/adjust", response_model=CreditBalanceOut)
 def adjust_credits(
     payload: CreditAdjust,
-    user: User = Depends(get_current_user),
+    admin: User = Depends(get_admin_user),
     db: Session = Depends(get_db),
 ) -> CreditBalanceOut:
-    """
-    Prototip: kullanıcı kendi kredisini ayarlayabilir (test için).
-    Üretimde admin-only veya ödeme webhook'una taşınmalı.
-    """
+    """Yalnızca admin — kendi test bakiyesini ayarlar. Kullanıcı kredisi için /admin/users/{id}/credits."""
     balance = apply_credit_change(
         db,
-        user,
+        admin,
         payload.amount,
         payload.reason,
-        reference_type=payload.reference_type,
+        reference_type=payload.reference_type or "admin_self_adjust",
         reference_id=payload.reference_id,
         allow_negative=False,
     )

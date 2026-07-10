@@ -1,18 +1,24 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.config import get_settings
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import Scenario, User, VideoJob
 from app.schemas import JobRevisionOut, ProduceRequest, RefineRequest, VideoJobOut
-from app.services.director.pipeline import get_job_critique, produce_from_scenario, refine_job
-from app.config import get_settings
+from app.services.director.pipeline import (
+    enqueue_produce,
+    execute_produce_job,
+    get_job_critique,
+    refine_job,
+)
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -48,7 +54,12 @@ def _scene_images(job_id: int) -> list[dict]:
         return []
     out = []
     for p in sorted(scenes_dir.glob("scene_*.jpg")):
-        out.append({"index": int(p.stem.split("_")[1]), "url": f"/media/jobs/{job_id}/scenes/{p.name}"})
+        out.append(
+            {
+                "index": int(p.stem.split("_")[1]),
+                "url": f"/media/jobs/{job_id}/scenes/{p.name}",
+            }
+        )
     return out
 
 
@@ -84,16 +95,22 @@ def _to_out(job: VideoJob, include_revisions: bool = True) -> VideoJobOut:
     )
 
 
+def _run_produce_background(job_id: int) -> None:
+    asyncio.run(execute_produce_job(job_id))
+
+
 @router.post("/produce", response_model=VideoJobOut, status_code=status.HTTP_201_CREATED)
 async def produce(
     payload: ProduceRequest,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> VideoJobOut:
     scenario = db.get(Scenario, payload.scenario_id)
     if scenario is None or scenario.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Senaryo bulunamadı")
-    job = await produce_from_scenario(db, user, scenario)
+    job = enqueue_produce(db, user, scenario)
+    background_tasks.add_task(_run_produce_background, job.id)
     job = db.scalar(
         select(VideoJob)
         .where(VideoJob.id == job.id)
