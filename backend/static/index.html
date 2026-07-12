@@ -28,27 +28,37 @@
 
   <main>
     <!-- Auth -->
-    <section class="panel auth-panel" id="authPanel">
-      <h1 class="display">Stüdyoya gir</h1>
-      <p class="lede">API anahtarlarını bağla, brief yaz, profesyonel senaryoya çevir.</p>
-
-      <div class="tabs" role="tablist">
-        <button type="button" class="tab active" data-tab="login">Giriş</button>
-        <button type="button" class="tab" data-tab="register">Kayıt</button>
+    <section class="panel auth-panel auth-panel--compact" id="authPanel">
+      <div id="authChooser">
+        <h1 class="display auth-title">Stüdyoya gir</h1>
+        <p class="lede auth-lede">Brief yaz, profesyonel Shorts senaryosuna çevir.</p>
+        <div class="auth-choices">
+          <button type="button" class="primary-btn auth-choice-btn" data-auth-mode="login">Giriş yap</button>
+          <button type="button" class="primary-btn auth-choice-btn auth-choice-btn--alt" data-auth-mode="register">Kayıt ol</button>
+        </div>
       </div>
 
-      <form id="loginForm" class="stack">
-        <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
-        <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>
-        <button type="submit" class="primary-btn">Giriş yap</button>
-      </form>
+      <div id="authLoginView" class="auth-form-view" hidden>
+        <button type="button" class="auth-back ghost-btn" id="authBackLogin" aria-label="Geri dön">← Geri</button>
+        <h2 class="auth-form-title">Giriş yap</h2>
+        <form id="loginForm" class="stack">
+          <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
+          <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>
+          <button type="submit" class="primary-btn">Giriş yap</button>
+        </form>
+      </div>
 
-      <form id="registerForm" class="stack" hidden>
-        <label>İsim <input type="text" name="display_name" maxlength="120" /></label>
-        <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
-        <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>
-        <button type="submit" class="primary-btn">Hesap oluştur</button>
-      </form>
+      <div id="authRegisterView" class="auth-form-view" hidden>
+        <button type="button" class="auth-back ghost-btn" id="authBackRegister" aria-label="Geri dön">← Geri</button>
+        <h2 class="auth-form-title">Kayıt ol</h2>
+        <form id="registerForm" class="stack">
+          <label>İsim <input type="text" name="display_name" maxlength="120" /></label>
+          <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
+          <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>
+          <button type="submit" class="primary-btn">Hesap oluştur</button>
+        </form>
+      </div>
+
       <p class="form-error" id="authError" hidden></p>
     </section>
 

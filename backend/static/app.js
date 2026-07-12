@@ -131,10 +131,31 @@ async function api(path, { method = "GET", body, auth = true } = {}) {
   return data;
 }
 
+function setAuthView(mode) {
+  const chooser = $("#authChooser");
+  const loginView = $("#authLoginView");
+  const registerView = $("#authRegisterView");
+  const panel = $("#authPanel");
+  if (!chooser || !loginView || !registerView || !panel) return;
+
+  chooser.hidden = mode !== "chooser";
+  loginView.hidden = mode !== "login";
+  registerView.hidden = mode !== "register";
+  panel.classList.toggle("auth-panel--compact", mode === "chooser");
+  setError($("#authError"), "");
+
+  if (mode === "login") {
+    loginView.querySelector("input[name=email]")?.focus();
+  } else if (mode === "register") {
+    registerView.querySelector("input[name=display_name]")?.focus();
+  }
+}
+
 function showAuth() {
   $("#authPanel").hidden = false;
   $("#studioPanel").hidden = true;
   $("#userBar").hidden = true;
+  setAuthView("chooser");
 }
 
 function showStudio() {
@@ -235,17 +256,15 @@ async function boot() {
   }
 }
 
-// Tabs
-document.querySelectorAll(".tab").forEach((btn) => {
+// Auth chooser
+document.querySelectorAll("[data-auth-mode]").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    const tab = btn.dataset.tab;
-    $("#loginForm").hidden = tab !== "login";
-    $("#registerForm").hidden = tab !== "register";
-    setError($("#authError"), "");
+    setAuthView(btn.dataset.authMode);
   });
 });
+
+$("#authBackLogin")?.addEventListener("click", () => setAuthView("chooser"));
+$("#authBackRegister")?.addEventListener("click", () => setAuthView("chooser"));
 
 $("#loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();

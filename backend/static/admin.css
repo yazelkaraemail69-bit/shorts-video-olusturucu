@@ -100,7 +100,7 @@
 }
 
 .pill-on {
-  background: rgba(142, 228, 168, 0.45);
+  background: rgba(72, 232, 138, 0.35);
   color: var(--accent-text);
 }
 
@@ -110,8 +110,8 @@
 }
 
 .pill-admin {
-  background: rgba(110, 214, 138, 0.35);
-  color: #166534;
+  background: rgba(52, 211, 153, 0.35);
+  color: #047857;
   margin-left: 0.35rem;
 }
 

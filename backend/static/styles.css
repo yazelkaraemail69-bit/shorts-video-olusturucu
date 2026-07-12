@@ -1,15 +1,15 @@
 :root {
-  --ink: #14532d;
+  --ink: #064e2b;
   --ink-2: #ffffff;
   --surface: #ffffff;
-  --panel: #f6fdf8;
-  --line: #ccefd8;
-  --text: #1e3a2f;
-  --muted: #5f7a6e;
-  --accent: #8ee4a8;
-  --accent-hover: #6dd68a;
-  --accent-2: #4ade80;
-  --accent-text: #14532d;
+  --panel: #f0fdf4;
+  --line: #86efac;
+  --text: #14532d;
+  --muted: #3f6b55;
+  --accent: #48e88a;
+  --accent-hover: #2fd974;
+  --accent-2: #34d399;
+  --accent-text: #064e2b;
   --danger: #dc2626;
   --radius: 14px;
   --font-display: "Noto Serif", Georgia, "Times New Roman", serif;
@@ -29,9 +29,9 @@ body {
   font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(900px 480px at 8% -5%, rgba(142, 228, 168, 0.22), transparent 55%),
-    radial-gradient(700px 420px at 100% 0%, rgba(110, 214, 138, 0.14), transparent 50%),
-    linear-gradient(180deg, #ffffff 0%, #f6fdf8 55%, #ffffff 100%);
+    radial-gradient(900px 480px at 8% -5%, rgba(72, 232, 138, 0.28), transparent 55%),
+    radial-gradient(700px 420px at 100% 0%, rgba(52, 211, 153, 0.2), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f0fdf4 55%, #ffffff 100%);
   background-attachment: fixed;
 }
 
@@ -53,7 +53,7 @@ body {
 .bg-orb-a {
   width: 280px;
   height: 280px;
-  background: #b8f0c8;
+  background: #6ee7a7;
   top: 20%;
   left: -60px;
 }
@@ -61,7 +61,7 @@ body {
 .bg-orb-b {
   width: 340px;
   height: 340px;
-  background: #d4f5de;
+  background: #86efac;
   bottom: -80px;
   right: -40px;
   animation-delay: -6s;
@@ -100,7 +100,7 @@ dialog {
   height: 12px;
   border-radius: 3px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 0 4px rgba(142, 228, 168, 0.35);
+  box-shadow: 0 0 0 4px rgba(72, 232, 138, 0.4);
   animation: pulse 2.8s ease-in-out infinite;
 }
 
@@ -171,8 +171,64 @@ main {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(20, 83, 45, 0.06);
+  box-shadow: 0 8px 24px rgba(6, 78, 43, 0.08);
   animation: rise 0.55s ease both;
+}
+
+.auth-panel--compact {
+  max-width: 320px;
+  margin: 4.5rem auto 0;
+  padding: 1.35rem 1.25rem 1.5rem;
+  text-align: center;
+}
+
+.auth-title {
+  font-size: clamp(1.35rem, 3.5vw, 1.65rem);
+  margin-bottom: 0.35rem;
+}
+
+.auth-lede {
+  margin-bottom: 1.1rem;
+  font-size: 0.92rem;
+  max-width: none;
+}
+
+.auth-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.auth-choice-btn {
+  width: 100%;
+}
+
+.auth-choice-btn--alt {
+  background: #ffffff;
+  color: var(--accent-text);
+  border: 1px solid var(--accent);
+}
+
+.auth-choice-btn--alt:hover {
+  background: rgba(72, 232, 138, 0.14);
+}
+
+.auth-form-view {
+  animation: rise 0.35s ease both;
+}
+
+.auth-form-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--text);
+}
+
+.auth-back {
+  margin-bottom: 0.85rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.88rem;
 }
 
 @keyframes rise {
@@ -235,8 +291,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(110, 214, 138, 0.85);
-  box-shadow: 0 0 0 3px rgba(142, 228, 168, 0.35);
+  border-color: rgba(47, 217, 116, 0.95);
+  box-shadow: 0 0 0 3px rgba(72, 232, 138, 0.35);
 }
 
 textarea {
@@ -259,7 +315,7 @@ textarea {
   background: var(--accent);
   color: var(--accent-text);
   font-weight: 700;
-  border: 1px solid rgba(110, 214, 138, 0.55);
+  border: 1px solid rgba(47, 217, 116, 0.65);
 }
 
 .primary-btn:hover {
@@ -281,8 +337,8 @@ textarea {
 
 .ghost-btn:hover {
   color: var(--accent-text);
-  border-color: rgba(110, 214, 138, 0.75);
-  background: #f6fdf8;
+  border-color: var(--accent);
+  background: rgba(72, 232, 138, 0.12);
 }
 
 .form-error {
@@ -352,14 +408,14 @@ textarea {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: rgba(142, 228, 168, 0.45);
+  background: rgba(72, 232, 138, 0.35);
   color: var(--accent-text);
   padding: 0.2rem 0.45rem;
   border-radius: 6px;
 }
 
 .hook {
-  color: #166534;
+  color: #047857;
   font-weight: 600;
   margin: 0 0 0.75rem;
   line-height: 1.4;
@@ -490,13 +546,13 @@ textarea {
 }
 
 .discuss-bubble.director {
-  background: rgba(142, 228, 168, 0.22);
-  border: 1px solid rgba(110, 214, 138, 0.45);
+  background: rgba(72, 232, 138, 0.22);
+  border: 1px solid rgba(47, 217, 116, 0.5);
 }
 
 .discuss-bubble.user {
-  background: rgba(214, 245, 223, 0.85);
-  border: 1px solid rgba(142, 228, 168, 0.55);
+  background: rgba(220, 252, 231, 0.95);
+  border: 1px solid rgba(72, 232, 138, 0.55);
   align-self: flex-end;
   max-width: 95%;
 }
@@ -555,7 +611,7 @@ textarea {
   aspect-ratio: 9 / 16;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #ecfdf3;
+  background: #ecfdf5;
   margin: 0 auto;
   display: block;
 }
@@ -581,7 +637,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.85rem;
-  background: #f6fdf8;
+  background: #f0fdf4;
   font-size: 0.9rem;
   line-height: 1.45;
   color: var(--muted);
@@ -694,8 +750,8 @@ dialog::backdrop {
 }
 
 .history-item:hover {
-  border-color: rgba(110, 214, 138, 0.85);
-  background: #f6fdf8;
+  border-color: var(--accent);
+  background: #f0fdf4;
   transform: translateY(-1px);
 }
 
@@ -734,7 +790,7 @@ dialog::backdrop {
 .work-spinner {
   width: 28px;
   height: 28px;
-  border: 2px solid rgba(142, 228, 168, 0.35);
+  border: 2px solid rgba(72, 232, 138, 0.35);
   border-top-color: var(--accent-2);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
