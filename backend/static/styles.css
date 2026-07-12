@@ -780,6 +780,14 @@ dialog::backdrop {
   color: var(--muted);
 }
 
+.source-block {
+  margin: 0.5rem 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #f0fdf4;
+}
+
 .history-block {
   margin-top: 1.6rem;
   padding-top: 1.2rem;

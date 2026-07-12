@@ -20,6 +20,7 @@ async def run_scenario_agent(
     style: str,
     audience: str | None,
     raw_input: str,
+    knowledge_brief: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return await run_scenario_council(
         db,
@@ -30,4 +31,5 @@ async def run_scenario_agent(
         style=style,
         audience=audience,
         raw_input=raw_input,
+        knowledge_brief=knowledge_brief,
     )

@@ -114,6 +114,29 @@
             <label>Hedef kitle (opsiyonel)
               <input type="text" name="audience" maxlength="200" placeholder="Örn. 25–40 yaş girişimciler" />
             </label>
+            <div class="source-block stack" id="sourceBlock">
+              <h3 class="history-title">Kaynak paketi (opsiyonel)</h3>
+              <p class="lede tight">Video linki, görsel veya PDF yükle — kaynaklar taranır ve senaryo buna göre yazılır.</p>
+              <label>Paket adı
+                <input type="text" id="sourcePackName" maxlength="200" placeholder="Örn. Yaz kampanyası kaynakları" />
+              </label>
+              <div class="row-2">
+                <button type="button" class="ghost-btn" id="createSourcePackBtn">Paket oluştur</button>
+                <select id="sourcePackSelect">
+                  <option value="">Kaynak paketi seçme</option>
+                </select>
+              </div>
+              <label>Video / referans linki
+                <input type="url" id="sourceVideoUrl" placeholder="https://…" />
+              </label>
+              <button type="button" class="ghost-btn" id="addSourceUrlBtn">Link ekle</button>
+              <label>Dosya (görsel, PDF)
+                <input type="file" id="sourceFileInput" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.md" />
+              </label>
+              <button type="button" class="ghost-btn" id="uploadSourceFileBtn">Dosya yükle</button>
+              <button type="button" class="primary-btn" id="analyzeSourcePackBtn">Kaynakları tara</button>
+              <p class="lede tight" id="sourcePackStatus">Henüz paket yok.</p>
+            </div>
             <label>Video brief’i
               <textarea name="raw_input" rows="5" required minlength="10" maxlength="4000"
                 placeholder="Fikir notu yaz (kopyalanmaz). Örn: kahve markası yaz kampanyası — serinlik + şehir enerjisi"></textarea>

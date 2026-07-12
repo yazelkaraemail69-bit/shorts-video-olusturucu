@@ -22,14 +22,18 @@ def test_mock_council_reduces_cliches() -> None:
         audience="genç yetişkinler",
         raw_input=raw,
     )
-    before = len(detect_cliches(draft))
+    before = detect_cliches(draft)
     revised = _mock_challenge(draft, language="tr", raw_input=raw)
     final = _mock_audit(revised, language="tr", style="shorts-punchy")
-    after = len(detect_cliches(final))
+    after = detect_cliches(final)
     assert final.get("scenes"), "scenes missing"
     assert final.get("hook"), "hook missing"
-    assert final["hook"] != draft.get("hook") or before > 0
-    print("cliches_before", before, "cliches_after", after)
+    blob = (final.get("hook") or "") + " " + " ".join(
+        str(s.get("narration") or "") for s in final.get("scenes") or []
+    ).lower()
+    for banned in ("yanlış yapıyorsun", "fikir var", "ritim yok", "dur."):
+        assert banned not in blob, f"yasak kalıp: {banned}"
+    print("cliches_before", len(before), "cliches_after", len(after))
     print("hook", final.get("hook"))
 
 

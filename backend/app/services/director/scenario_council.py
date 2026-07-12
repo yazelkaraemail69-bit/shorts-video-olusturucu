@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models import User
-from app.services.director.cliche_guard import detect_cliches, rewrite_cliche_narration, topic_variant_index
+from app.services.director.cliche_guard import detect_cliches, sanitize_script, topic_variant_index
 from app.services.director.constitution import (
     AUDITOR_SYSTEM,
     CHALLENGER_SYSTEM,
@@ -21,7 +21,7 @@ from app.services.director.constitution import (
 )
 from app.services.director.integration import resolve_openrouter_key, verify_openrouter
 from app.services.openrouter import _extract_json, _mock_script, _topic_seed, chat_completion_json
-from app.services.shorts_prompt import SHORTS_SCHEMA_HINT, SHORTS_USER_PREFIX
+from app.services.director.knowledge_scanner import knowledge_for_council
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +34,9 @@ def _payload(
     style: str,
     audience: str | None,
     raw_input: str,
+    knowledge_brief: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    base = {
         "language": language,
         "title": title,
         "duration_seconds": duration_seconds,
@@ -44,6 +45,10 @@ def _payload(
         "format": "youtube_shorts_9x16",
         "user_brief": raw_input,
     }
+    ctx = knowledge_for_council(knowledge_brief)
+    if ctx:
+        base["source_knowledge"] = ctx
+    return base
 
 
 def _validate_script(script: dict[str, Any]) -> dict[str, Any]:
@@ -54,42 +59,8 @@ def _validate_script(script: dict[str, Any]) -> dict[str, Any]:
 
 
 def _mock_challenge(script: dict[str, Any], *, language: str, raw_input: str) -> dict[str, Any]:
-    """AI-B mock: kalıpları tespit et, alternatif cümlelerle tazele."""
-    out = json.loads(json.dumps(script, ensure_ascii=False))
-    variant = topic_variant_index(raw_input, 6)
-    clichés = detect_cliches(out)
-    if not clichés:
-        return out
-
-    for sc in out.get("scenes") or []:
-        sc["narration"] = rewrite_cliche_narration(
-            str(sc.get("narration") or ""),
-            language=language,
-            variant=variant + int(sc.get("index") or 0),
-        )
-
-    narrations = [str(s.get("narration") or "") for s in out.get("scenes") or []]
-    out["voiceover_full"] = " ".join(n for n in narrations if n)
-    if out.get("scenes"):
-        out["hook"] = narrations[0][:120] if narrations else out.get("hook")
-
-    topic = _topic_seed(raw_input)
-    tr = not language.lower().startswith("en")
-    hooks = (
-        [
-            f"{topic[:40]} — çoğu kişi tam tersini yapıyor.",
-            f"3 saniyede anlayacaksın: {topic[:35]}",
-            f"Kimse söylemiyor ama {topic[:30]} böyle çalışır.",
-        ]
-        if tr
-        else [
-            f"{topic[:40]} — most people get this backwards.",
-            f"In 3 seconds you'll see why {topic[:30]} matters.",
-            f"Nobody talks about this part of {topic[:25]}.",
-        ]
-    )
-    out["hook"] = hooks[variant % len(hooks)]
-    return out
+    """AI-B mock: kalıp temizliği."""
+    return sanitize_script(script, topic=_topic_seed(raw_input))
 
 
 def _mock_audit(script: dict[str, Any], *, language: str, style: str) -> dict[str, Any]:
@@ -134,6 +105,7 @@ async def _mock_council(
     revised = _mock_challenge(draft, language=language, raw_input=raw_input)
     final = _mock_audit(revised, language=language, style=style)
     final["_mock"] = True
+    final = sanitize_script(final, topic=raw_input)
     return _validate_script(final)
 
 
@@ -216,6 +188,7 @@ async def run_scenario_council(
     style: str,
     audience: str | None,
     raw_input: str,
+    knowledge_brief: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Dışarıya yalnızca: {"script": ..., "integration": ..., "agent": "AI1_council"}
@@ -234,6 +207,13 @@ async def run_scenario_council(
             audience=audience,
             raw_input=raw_input,
         )
+        if knowledge_brief:
+            extra = knowledge_for_council(knowledge_brief)
+            if extra and script.get("scenes"):
+                script["edit_notes"] = (
+                    str(script.get("edit_notes") or "") + " | Kaynak rehberli"
+                ).strip(" |")
+        script = sanitize_script(script, topic=raw_input)
         return {"script": script, "integration": check, "agent": "AI1_council"}
 
     if not api_key:
@@ -245,6 +225,8 @@ async def run_scenario_council(
         )
 
     model = settings.openrouter_model
+    model_challenge = settings.openrouter_model_challenger or model
+    model_audit = settings.openrouter_model_auditor or model
     base = _payload(
         language=language,
         title=title,
@@ -252,15 +234,17 @@ async def run_scenario_council(
         style=style,
         audience=audience,
         raw_input=raw_input,
+        knowledge_brief=knowledge_brief,
     )
 
     draft = await _propose(api_key, model, base)
-    revised = await _challenge(api_key, model, base, draft)
-    final = await _audit(api_key, model, base, revised)
+    revised = await _challenge(api_key, model_challenge, base, draft)
+    final = await _audit(api_key, model_audit, base, revised)
 
     # İç kalite kontrolü — hâlâ kalıp varsa bir kez daha challenge (gizli)
     if detect_cliches(final):
         logger.debug("Council: cliché detected post-audit, running silent re-challenge")
-        final = await _challenge(api_key, model, base, final)
+        final = await _challenge(api_key, model_challenge, base, final)
 
+    final = sanitize_script(final, topic=raw_input)
     return {"script": final, "integration": check, "agent": "AI1_council"}

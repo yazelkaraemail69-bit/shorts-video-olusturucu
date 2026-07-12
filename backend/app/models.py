@@ -53,6 +53,9 @@ class User(Base):
     video_jobs: Mapped[list[VideoJob]] = relationship(
         "VideoJob", back_populates="user", cascade="all, delete-orphan"
     )
+    source_packs: Mapped[list["SourcePack"]] = relationship(
+        "SourcePack", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class ApiKey(Base):
@@ -213,3 +216,53 @@ class JobRevision(Base):
     )
 
     job: Mapped[VideoJob] = relationship("VideoJob", back_populates="revisions")
+
+
+class SourcePack(Base):
+    """Kullanıcının yüklediği kaynaklar — Anthropic ile taranır, konseyi besler."""
+
+    __tablename__ = "source_packs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(200), nullable=False, default="Kaynak paketi")
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="pending")
+    # pending | analyzing | ready | failed
+    knowledge_brief: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped[User] = relationship("User", back_populates="source_packs")
+    items: Mapped[list["SourceItem"]] = relationship(
+        "SourceItem", back_populates="pack", cascade="all, delete-orphan"
+    )
+
+
+class SourceItem(Base):
+    __tablename__ = "source_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    pack_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("source_packs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    kind: Mapped[str] = mapped_column(String(30), nullable=False)
+    # video_url | image | pdf | file | text
+    label: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    storage_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    external_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    extracted_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    pack: Mapped[SourcePack] = relationship("SourcePack", back_populates="items")

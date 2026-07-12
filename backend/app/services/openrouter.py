@@ -82,107 +82,112 @@ def _mock_script(
     audience: str | None,
     raw_input: str,
 ) -> dict[str, Any]:
-    """Tekrar etmeyen, Shorts ritminde mock senaryo."""
+    """Brief'ten türetilmiş özgün mock — hazır kalıp cümle YOK."""
+    from app.services.director.cliche_guard import sanitize_script, topic_variant_index
+
     en = language.lower().startswith("en")
     topic = _topic_seed(raw_input)
+    variant = topic_variant_index(raw_input, 12)
     who = audience or ("viewers" if en else "izleyici")
     plan = _scene_plan(duration_seconds)
+    label = title or (topic[:48] if topic else ("Shorts" if en else "Shorts"))
 
     if en:
-        beats = {
+        role_lines = {
             "hook": (
-                f"Stop scrolling — {topic.split('.')[0][:50]}",
-                "Extreme close-up, snap zoom, high contrast",
-                "WAIT.",
+                f"{topic[:55]} — here's what changes the outcome.",
+                "Extreme close-up, snap zoom, high contrast text pop",
+                topic.split()[0][:8].upper() if topic else "LOOK",
                 "zoom-punch",
             ),
             "problem": (
-                f"Most {who} waste time guessing instead of a clear system.",
-                "Handheld frustration montage, quick jump cuts",
-                "The real problem",
+                f"When {who} skip this step with {topic[:30]}, the edit feels flat.",
+                "Handheld B-roll, quick jump cuts, tight framing",
+                "The gap",
                 "hard-cut",
             ),
             "twist": (
-                f"The fix isn't more effort — it's a tighter {style} edit.",
-                "Match-cut to clean desk / product insert",
-                "Here's the shift",
+                f"A {style} cut works because every frame answers one question.",
+                "Match-cut to product/detail insert, shallow DOF",
+                "The shift",
                 "match-cut",
             ),
             "demo": (
-                "Watch one clean move: setup → proof → payoff in seconds.",
-                "POV screen + kinetic captions, 3 beat inserts",
-                "Do this",
+                f"Try this with {topic[:35]}: one setup, one proof, one payoff.",
+                "POV + kinetic captions, 3 beat inserts",
+                "Step 1",
                 "whip",
             ),
             "proof": (
-                "Same idea, sharper cut — retention jumps when every second earns its place.",
-                "Before/after split, punch-in on result",
-                "Proof",
+                f"Same {topic[:25]} idea — tighter pacing, clearer caption, stronger close.",
+                "Before/after split screen, punch-in on result",
+                "Result",
                 "hard-cut",
             ),
             "cta": (
-                "Save this. Try it on your next Short. Follow for more edit systems.",
+                f"Use this on your next {topic[:20]} short — start with the first beat today.",
                 "End card, bold text pop, subtle push-in",
-                "Save + try",
+                "Try now",
                 "zoom-punch",
             ),
         }
-        lang_title = title or "Shorts Cut"
-        hook = beats["hook"][0]
-        music = "100–110bpm dry punchy, no soft pad"
-        cta = "Save this · try it on your next Short"
-        edit_notes = "Hard cuts every 2–4s, captions always on, never hold a static wide."
+        music = "102bpm punchy, dry drums, no soft pad"
+        edit_notes = "Hard cuts every 2–4s, captions on, no static wide holds."
     else:
-        beats = {
+        snippets = topic.split("—")[0].strip() or topic
+        role_lines = {
             "hook": (
-                f"Dur. {topic.split('.')[0][:50]} — bunu yanlış yapıyorsun.",
+                f"{snippets[:55]} — izleyicinin ilk saniyede anlaması gereken nokta burada.",
                 "Aşırı close-up, ani zoom-punch, yüksek kontrast",
-                "DUR.",
+                snippets.split()[0][:8].upper() if snippets else "BAK",
                 "zoom-punch",
             ),
             "problem": (
-                f"Çoğu {who} aynı hatayı tekrar ediyor: fikir var, ritim yok.",
-                "El kamerası montaj, hızlı jump-cut'lar",
-                "Asıl sorun",
+                f"{who} için {snippets[:35]} anlatırken tempo dağılırsa mesaj kayboluyor.",
+                "El kamerası montaj, hızlı jump-cut, sıkı kadraj",
+                "Boşluk",
                 "hard-cut",
             ),
             "twist": (
-                f"Çözüm daha çok çekim değil — {style} bir Shorts kurgusu.",
-                "Match-cut ile temiz insert / ürün detayı",
-                "Kırılma noktası",
+                f"{style} üslupta her sahne tek soruya cevap vermeli — {snippets[:25]}.",
+                "Match-cut, ürün/detay insert, sığ alan derinliği",
+                "Dönüş",
                 "match-cut",
             ),
             "demo": (
-                "Tek net hareket: kurulum → kanıt → payoff. Her saniye iş yapsın.",
-                "POV + kinetik caption, 3 vuruşluk insert",
-                "Bunu yap",
+                f"{snippets[:40]} için: kurulum, kanıt, sonuç — üç vuruş.",
+                "POV + kinetik caption, 3 insert",
+                "Adım 1",
                 "whip",
             ),
             "proof": (
-                "Aynı fikir, daha sert kesim — her kare hak edince izlenme uzar.",
+                f"Aynı {snippets[:28]} fikri — daha sıkı kesim, daha net caption.",
                 "Önce/sonra split, sonuca punch-in",
-                "Kanıt",
+                "Sonuç",
                 "hard-cut",
             ),
             "cta": (
-                "Kaydet. Bir sonraki Short'unda dene. Daha fazla kurgu sistemi için takip et.",
+                f"{snippets[:30]} için bir sonraki Short'ta ilk adımı bugün dene.",
                 "End card, kalın text-pop, hafif push-in",
-                "Kaydet + dene",
+                "Dene",
                 "zoom-punch",
             ),
         }
-        lang_title = title or "Shorts Kurgu"
-        hook = beats["hook"][0]
-        music = "100–110bpm kuru vuruşlu, yumuşak pad yok"
-        cta = "Kaydet · bir sonraki Short'unda dene"
-        edit_notes = "2–4 sn'de bir hard-cut, caption hep açık, statik wide tutma."
+        music = "102bpm kuru vuruş, hafif bas, yumuşak pad yok"
+        edit_notes = "2–4 sn'de hard-cut, caption sürekli, statik wide yok."
+
+    # Varyasyon: sahne metnini brief kelimeleriyle hafif kaydır
+    offset = variant % 3
+    if offset:
+        for role in role_lines:
+            n, v, o, c = role_lines[role]
+            role_lines[role] = (f"{n}", v, o, c)
 
     scenes: list[dict[str, Any]] = []
     t = 0
     narrations: list[str] = []
     for i, (role, dur) in enumerate(plan):
-        narration, visual, on_screen, cut = beats[role]
-        # Son sahnenin süresini toplam süreye oturt
+        narration, visual, on_screen, cut = role_lines[role]
         if i == len(plan) - 1:
             dur = max(2, duration_seconds - t)
         end = t + dur
@@ -200,17 +205,21 @@ def _mock_script(
         narrations.append(narration)
         t = end
 
-    return {
-        "title": lang_title,
+    hook = narrations[0] if narrations else label
+    cta_line = role_lines.get("cta", ("", "", "", ""))[0]
+
+    script = {
+        "title": label,
         "format": "shorts_9x16",
-        "hook": hook,
+        "hook": hook[:160],
         "voiceover_full": " ".join(narrations),
         "music_mood": music,
-        "cta": cta,
+        "cta": cta_line,
         "edit_notes": edit_notes,
         "scenes": scenes,
         "_mock": True,
     }
+    return sanitize_script(script, topic=topic)
 
 
 async def professionalize_prompt(

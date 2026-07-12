@@ -20,6 +20,7 @@ from app.schemas import (
 from app.services.credits import apply_credit_change
 from app.services.director.ai1_scenario import run_scenario_agent
 from app.services.director.critique import apply_critique_feedback, build_critique_report
+from app.routers.sources import load_knowledge_brief
 from app.services.pricing import (
     copy_unlock_credit_cost,
     discuss_credit_cost,
@@ -189,6 +190,24 @@ async def professionalize(
     )
 
     try:
+        knowledge = None
+        if payload.source_pack_id:
+            from app.models import SourcePack
+
+            pack = db.scalar(
+                select(SourcePack).where(
+                    SourcePack.id == payload.source_pack_id,
+                    SourcePack.user_id == user.id,
+                )
+            )
+            if not pack:
+                raise HTTPException(status_code=404, detail="Kaynak paketi bulunamadı")
+            if pack.status != "ready":
+                raise HTTPException(
+                    status_code=400,
+                    detail="Kaynak paketi henüz hazır değil — önce kaynakları tarayın.",
+                )
+            knowledge = load_knowledge_brief(db, user.id, payload.source_pack_id)
         result = await run_scenario_agent(
             db,
             user,
@@ -198,6 +217,7 @@ async def professionalize(
             style=payload.style,
             audience=payload.audience,
             raw_input=payload.raw_input.strip(),
+            knowledge_brief=knowledge,
         )
     except Exception as exc:  # noqa: BLE001
         apply_credit_change(

@@ -156,6 +156,26 @@ class ScenarioProfessionalizeRequest(BaseModel):
     style: str = Field(default="profesyonel", max_length=80)
     audience: str | None = Field(default=None, max_length=200)
     raw_input: str = Field(min_length=10, max_length=4000)
+    source_pack_id: int | None = Field(default=None, description="Hazır kaynak paketi ID")
+
+
+class SourceItemOut(BaseModel):
+    id: int
+    kind: str
+    label: str | None = None
+    external_url: str | None = None
+
+
+class SourcePackOut(BaseModel):
+    id: int
+    name: str
+    status: str
+    item_count: int = 0
+    knowledge_ready: bool = False
+    has_brief: bool = False
+    error_message: str | None = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class DiscussionMessage(BaseModel):

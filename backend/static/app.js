@@ -52,6 +52,7 @@ const state = {
   refineCost: 35,
   pricing: null,
   lastScenario: null,
+  activeSourcePackId: null,
 };
 
 function setError(el, msg) {
@@ -205,6 +206,7 @@ function showStudio() {
   $("#authPanel").hidden = true;
   $("#studioPanel").hidden = false;
   $("#userBar").hidden = false;
+  loadSourcePacks();
 }
 
 async function refreshMe() {
@@ -653,6 +655,7 @@ $("#scenarioForm").addEventListener("submit", async (e) => {
         style: fd.get("style"),
         audience: fd.get("audience") || null,
         raw_input: fd.get("raw_input"),
+        source_pack_id: state.activeSourcePackId || null,
       },
     });
     renderScenario(scenario);
@@ -764,6 +767,141 @@ $("#refineBtn").addEventListener("click", async () => {
   } finally {
     btn.disabled = false;
     btn.textContent = `Revize et (${state.refineCost} kredi)`;
+    setWorking(false);
+  }
+});
+
+async function loadSourcePacks() {
+  const sel = $("#sourcePackSelect");
+  if (!sel) return;
+  try {
+    const packs = await api("/sources/packs");
+    sel.innerHTML = `<option value="">Kaynak paketi seçme</option>`;
+    for (const p of packs) {
+      const label = `${p.name} (${p.status}${p.knowledge_ready ? " · hazır" : ""})`;
+      sel.innerHTML += `<option value="${p.id}">${escapeHtml(label)}</option>`;
+    }
+    if (state.activeSourcePackId) {
+      sel.value = String(state.activeSourcePackId);
+    }
+    updateSourcePackStatus(packs.find((p) => p.id === state.activeSourcePackId));
+  } catch {
+    /* opsiyonel */
+  }
+}
+
+function updateSourcePackStatus(pack) {
+  const el = $("#sourcePackStatus");
+  if (!el) return;
+  if (!pack) {
+    el.textContent = state.activeSourcePackId
+      ? "Paket seçildi — taramayı çalıştırın."
+      : "Henüz paket yok.";
+    return;
+  }
+  el.textContent = pack.knowledge_ready
+    ? `✓ ${pack.name} hazır — senaryo kaynaklara göre yazılır.`
+    : `${pack.name}: ${pack.status}${pack.error_message ? " — " + pack.error_message : ""}`;
+}
+
+$("#createSourcePackBtn")?.addEventListener("click", async () => {
+  const name = ($("#sourcePackName")?.value || "Kaynak paketi").trim();
+  setWorking(true, "Paket oluşturuluyor…");
+  try {
+    const body = new URLSearchParams({ name });
+    const r = await fetch(`${API}/sources/packs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: state.token ? `Bearer ${state.token}` : "",
+      },
+      body,
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || "Paket oluşturulamadı");
+    state.activeSourcePackId = data.id;
+    await loadSourcePacks();
+  } catch (err) {
+    setError($("#scenarioError"), err.message);
+  } finally {
+    setWorking(false);
+  }
+});
+
+$("#sourcePackSelect")?.addEventListener("change", (e) => {
+  const v = e.target.value;
+  state.activeSourcePackId = v ? Number(v) : null;
+  loadSourcePacks();
+});
+
+$("#addSourceUrlBtn")?.addEventListener("click", async () => {
+  if (!state.activeSourcePackId) {
+    setError($("#scenarioError"), "Önce kaynak paketi oluşturun veya seçin.");
+    return;
+  }
+  const url = ($("#sourceVideoUrl")?.value || "").trim();
+  if (!url) return;
+  setWorking(true, "Link ekleniyor…");
+  try {
+    const body = new URLSearchParams({ url });
+    await fetch(`${API}/sources/packs/${state.activeSourcePackId}/items/url`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: state.token ? `Bearer ${state.token}` : "",
+      },
+      body,
+    }).then(async (r) => {
+      if (!r.ok) throw new Error((await r.json()).detail || "Link eklenemedi");
+    });
+    $("#sourceVideoUrl").value = "";
+    await loadSourcePacks();
+  } catch (err) {
+    setError($("#scenarioError"), err.message);
+  } finally {
+    setWorking(false);
+  }
+});
+
+$("#uploadSourceFileBtn")?.addEventListener("click", async () => {
+  if (!state.activeSourcePackId) {
+    setError($("#scenarioError"), "Önce kaynak paketi oluşturun veya seçin.");
+    return;
+  }
+  const input = $("#sourceFileInput");
+  const file = input?.files?.[0];
+  if (!file) return;
+  setWorking(true, "Dosya yükleniyor…");
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await fetch(`${API}/sources/packs/${state.activeSourcePackId}/items/upload`, {
+      method: "POST",
+      headers: state.token ? { Authorization: `Bearer ${state.token}` } : {},
+      body: fd,
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || "Yükleme başarısız");
+    input.value = "";
+    await loadSourcePacks();
+  } catch (err) {
+    setError($("#scenarioError"), err.message);
+  } finally {
+    setWorking(false);
+  }
+});
+
+$("#analyzeSourcePackBtn")?.addEventListener("click", async () => {
+  if (!state.activeSourcePackId) {
+    setError($("#scenarioError"), "Önce kaynak paketi seçin.");
+    return;
+  }
+  setWorking(true, "Kaynaklar taranıyor…");
+  try {
+    await api(`/sources/packs/${state.activeSourcePackId}/analyze`, { method: "POST" });
+    await loadSourcePacks();
+  } catch (err) {
+    setError($("#scenarioError"), err.message);
+  } finally {
     setWorking(false);
   }
 });

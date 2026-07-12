@@ -23,11 +23,17 @@ class Settings(BaseSettings):
 
     initial_credits: int = 130
 
-    # --- AI 1: Senaryo (OpenRouter / Claude) ---
+    # --- AI 1–3: Senaryo konseyi (OpenRouter — en iyi Sonnet) ---
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    openrouter_model: str = "anthropic/claude-sonnet-4"
-    # Sunucu fallback anahtarı (kullanıcı kaydı yoksa)
+    openrouter_model: str = "anthropic/claude-sonnet-4.6"
+    openrouter_model_challenger: str = "anthropic/claude-sonnet-4.6"
+    openrouter_model_auditor: str = "anthropic/claude-sonnet-4.6"
     openrouter_api_key: str = ""
+
+    # --- AI 4: Kaynak tarayıcı (Anthropic doğrudan — Sonnet 4.6) ---
+    anthropic_base_url: str = "https://api.anthropic.com/v1"
+    anthropic_model: str = "claude-sonnet-4-20250514"
+    anthropic_api_key: str = ""
 
     # --- AI 2: Görsel (OpenRouter image / DALL·E / Flux) ---
     openrouter_image_model: str = "black-forest-labs/flux.2-pro"

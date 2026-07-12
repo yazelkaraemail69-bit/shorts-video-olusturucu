@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.database import init_db
-from app.routers import admin, api_keys, auth, credits, jobs, media, scenarios
+from app.routers import admin, api_keys, auth, credits, jobs, media, scenarios, sources
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 MEDIA_DIR = Path(__file__).resolve().parent.parent / "data" / "media"
@@ -56,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(api_keys.router, prefix="/api")
     app.include_router(credits.router, prefix="/api")
     app.include_router(scenarios.router, prefix="/api")
+    app.include_router(sources.router, prefix="/api")
     app.include_router(jobs.router, prefix="/api")
     app.include_router(admin.router, prefix="/api")
     app.include_router(media.router)
@@ -65,7 +66,11 @@ def create_app() -> FastAPI:
         return {
             "status": "ok",
             "product": "master_ai_director",
-            "agents": ["AI1_scenario", "AI2_visual", "AI3_editor", "critique"],
+            "agents": ["AI1_council", "AI2_visual", "AI3_editor", "AI4_knowledge", "critique"],
+            "models": {
+                "openrouter": settings.openrouter_model,
+                "anthropic_knowledge": settings.anthropic_model,
+            },
             "mock_ai": settings.mock_ai,
         }
 
