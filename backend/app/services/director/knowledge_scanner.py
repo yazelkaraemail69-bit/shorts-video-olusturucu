@@ -84,12 +84,18 @@ def _mock_knowledge_brief(pack: SourcePack, items: list[SourceItem]) -> dict[str
     }
 
 
-async def _anthropic_json(system: str, user: str) -> dict[str, Any]:
+async def anthropic_completion_json(
+    system: str,
+    user: str,
+    *,
+    temperature: float = 0.7,
+) -> dict[str, Any]:
     settings = get_settings()
     api_key = _resolve_anthropic_key()
     body = {
         "model": settings.anthropic_model,
         "max_tokens": 4096,
+        "temperature": temperature,
         "system": system,
         "messages": [{"role": "user", "content": user}],
     }
@@ -172,7 +178,7 @@ async def analyze_source_pack(pack: SourcePack, items: list[SourceItem]) -> dict
         f"Paket adı: {pack.name}\n\n"
         f"Kaynaklar:\n{json.dumps(payload_items, ensure_ascii=False, indent=2)}"
     )
-    return await _anthropic_json(KNOWLEDGE_SYSTEM, user)
+    return await anthropic_completion_json(KNOWLEDGE_SYSTEM, user)
 
 
 def knowledge_for_council(knowledge_brief: dict[str, Any] | None) -> str:
