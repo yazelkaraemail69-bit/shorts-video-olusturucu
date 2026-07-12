@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # --- AI 4: Kaynak tarayıcı (Anthropic doğrudan — Sonnet 4.6) ---
     anthropic_base_url: str = "https://api.anthropic.com/v1"
-    anthropic_model: str = "claude-sonnet-4-20250514"
+    anthropic_model: str = "claude-sonnet-4-6"
     anthropic_api_key: str = ""
 
     # --- AI 2: Görsel (OpenRouter image / DALL·E / Flux) ---
