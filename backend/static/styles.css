@@ -1,16 +1,19 @@
 :root {
-  --ink: #0e1210;
-  --ink-2: #161c18;
-  --surface: rgba(28, 36, 31, 0.72);
-  --line: rgba(232, 220, 190, 0.12);
-  --text: #f3efe6;
-  --muted: #a8b0a6;
-  --accent: #e2a84a;
-  --accent-2: #3d9b7a;
-  --danger: #e07a6a;
+  --ink: #14532d;
+  --ink-2: #ffffff;
+  --surface: #ffffff;
+  --panel: #f6fdf8;
+  --line: #ccefd8;
+  --text: #1e3a2f;
+  --muted: #5f7a6e;
+  --accent: #8ee4a8;
+  --accent-hover: #6dd68a;
+  --accent-2: #4ade80;
+  --accent-text: #14532d;
+  --danger: #dc2626;
   --radius: 14px;
-  --font-display: "Syne", sans-serif;
-  --font-body: "Figtree", sans-serif;
+  --font-display: "Noto Serif", Georgia, "Times New Roman", serif;
+  --font-body: "Noto Serif", Georgia, "Times New Roman", serif;
 }
 
 *,
@@ -26,9 +29,9 @@ body {
   font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(61, 155, 122, 0.18), transparent 55%),
-    radial-gradient(900px 500px at 100% 0%, rgba(226, 168, 74, 0.14), transparent 50%),
-    linear-gradient(165deg, #0b0f0d 0%, #121814 45%, #0e1210 100%);
+    radial-gradient(900px 480px at 8% -5%, rgba(142, 228, 168, 0.22), transparent 55%),
+    radial-gradient(700px 420px at 100% 0%, rgba(110, 214, 138, 0.14), transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f6fdf8 55%, #ffffff 100%);
   background-attachment: fixed;
 }
 
@@ -41,7 +44,7 @@ body {
   position: fixed;
   border-radius: 50%;
   filter: blur(60px);
-  opacity: 0.35;
+  opacity: 0.55;
   pointer-events: none;
   z-index: 0;
   animation: drift 18s ease-in-out infinite alternate;
@@ -50,7 +53,7 @@ body {
 .bg-orb-a {
   width: 280px;
   height: 280px;
-  background: #3d9b7a;
+  background: #b8f0c8;
   top: 20%;
   left: -60px;
 }
@@ -58,7 +61,7 @@ body {
 .bg-orb-b {
   width: 340px;
   height: 340px;
-  background: #e2a84a;
+  background: #d4f5de;
   bottom: -80px;
   right: -40px;
   animation-delay: -6s;
@@ -82,6 +85,7 @@ dialog {
   justify-content: space-between;
   padding: 1.1rem 1.5rem;
   border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
 }
 
@@ -96,7 +100,7 @@ dialog {
   height: 12px;
   border-radius: 3px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 0 4px rgba(226, 168, 74, 0.15);
+  box-shadow: 0 0 0 4px rgba(142, 228, 168, 0.35);
   animation: pulse 2.8s ease-in-out infinite;
 }
 
@@ -120,7 +124,7 @@ dialog {
 
 .credit-chip {
   font-size: 0.85rem;
-  color: var(--ink);
+  color: var(--accent-text);
   background: var(--accent);
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
@@ -167,6 +171,7 @@ main {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(20, 83, 45, 0.06);
   animation: rise 0.55s ease both;
 }
 
@@ -193,8 +198,8 @@ main {
 }
 
 .tab.active {
-  color: var(--ink);
-  background: var(--text);
+  color: var(--accent-text);
+  background: var(--accent);
   border-color: transparent;
   font-weight: 600;
 }
@@ -219,7 +224,7 @@ select,
 textarea {
   font: inherit;
   color: var(--text);
-  background: var(--ink-2);
+  background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 0.7rem 0.85rem;
@@ -230,8 +235,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(226, 168, 74, 0.55);
-  box-shadow: 0 0 0 3px rgba(226, 168, 74, 0.12);
+  border-color: rgba(110, 214, 138, 0.85);
+  box-shadow: 0 0 0 3px rgba(142, 228, 168, 0.35);
 }
 
 textarea {
@@ -251,12 +256,14 @@ textarea {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, var(--accent), #c9892e);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
+  border: 1px solid rgba(110, 214, 138, 0.55);
 }
 
 .primary-btn:hover {
+  background: var(--accent-hover);
   transform: translateY(-1px);
 }
 
@@ -267,14 +274,15 @@ textarea {
 }
 
 .ghost-btn {
-  background: transparent;
+  background: #ffffff;
   color: var(--muted);
   border: 1px solid var(--line);
 }
 
 .ghost-btn:hover {
-  color: var(--text);
-  border-color: rgba(232, 220, 190, 0.28);
+  color: var(--accent-text);
+  border-color: rgba(110, 214, 138, 0.75);
+  background: #f6fdf8;
 }
 
 .form-error {
@@ -297,6 +305,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 1.25rem;
+  box-shadow: 0 6px 20px rgba(20, 83, 45, 0.05);
 }
 
 .compose .display {
@@ -343,14 +352,14 @@ textarea {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: rgba(61, 155, 122, 0.25);
-  color: #9fe0c6;
+  background: rgba(142, 228, 168, 0.45);
+  color: var(--accent-text);
   padding: 0.2rem 0.45rem;
   border-radius: 6px;
 }
 
 .hook {
-  color: var(--accent);
+  color: #166534;
   font-weight: 600;
   margin: 0 0 0.75rem;
   line-height: 1.4;
@@ -398,7 +407,7 @@ textarea {
 
 .scene-time {
   font-size: 0.75rem;
-  color: var(--accent);
+  color: #166534;
   font-weight: 600;
 }
 
@@ -481,13 +490,13 @@ textarea {
 }
 
 .discuss-bubble.director {
-  background: rgba(61, 155, 122, 0.14);
-  border: 1px solid rgba(61, 155, 122, 0.28);
+  background: rgba(142, 228, 168, 0.22);
+  border: 1px solid rgba(110, 214, 138, 0.45);
 }
 
 .discuss-bubble.user {
-  background: rgba(226, 168, 74, 0.12);
-  border: 1px solid rgba(226, 168, 74, 0.28);
+  background: rgba(214, 245, 223, 0.85);
+  border: 1px solid rgba(142, 228, 168, 0.55);
   align-self: flex-end;
   max-width: 95%;
 }
@@ -525,6 +534,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 1.25rem;
+  box-shadow: 0 6px 20px rgba(20, 83, 45, 0.05);
 }
 
 .player-head {
@@ -545,7 +555,7 @@ textarea {
   aspect-ratio: 9 / 16;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: #0a0d0b;
+  background: #ecfdf3;
   margin: 0 auto;
   display: block;
 }
@@ -571,7 +581,7 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.85rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: #f6fdf8;
   font-size: 0.9rem;
   line-height: 1.45;
   color: var(--muted);
@@ -590,7 +600,7 @@ textarea {
 }
 
 .critique-box strong {
-  color: var(--accent);
+  color: #166534;
 }
 
 .scene-thumbs {
@@ -608,7 +618,7 @@ textarea {
 }
 
 .revision-item {
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--accent-2);
   padding: 0.4rem 0.7rem;
   font-size: 0.85rem;
   color: var(--muted);
@@ -622,14 +632,15 @@ textarea {
 dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--ink-2);
+  background: #ffffff;
   color: var(--text);
   padding: 0;
   width: min(440px, calc(100vw - 2rem));
+  box-shadow: 0 16px 40px rgba(20, 83, 45, 0.12);
 }
 
 dialog::backdrop {
-  background: rgba(5, 8, 6, 0.72);
+  background: rgba(246, 253, 248, 0.72);
   backdrop-filter: blur(4px);
 }
 
@@ -655,7 +666,7 @@ dialog::backdrop {
 }
 
 .history-title {
-  font-family: "Syne", sans-serif;
+  font-family: var(--font-display);
   font-size: 1rem;
   margin: 0 0 0.7rem;
 }
@@ -676,14 +687,15 @@ dialog::backdrop {
   text-align: left;
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  background: #ffffff;
   color: inherit;
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .history-item:hover {
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  border-color: rgba(110, 214, 138, 0.85);
+  background: #f6fdf8;
   transform: translateY(-1px);
 }
 
@@ -698,7 +710,7 @@ dialog::backdrop {
   z-index: 80;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, #06110c 55%, transparent);
+  background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(3px);
 }
 
@@ -712,17 +724,18 @@ dialog::backdrop {
   align-items: center;
   gap: 0.85rem;
   padding: 1.4rem 1.6rem;
-  background: var(--panel);
+  background: #ffffff;
   border: 1px solid var(--line);
   min-width: min(280px, 86vw);
   text-align: center;
+  box-shadow: 0 12px 32px rgba(20, 83, 45, 0.1);
 }
 
 .work-spinner {
   width: 28px;
   height: 28px;
-  border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
-  border-top-color: var(--accent);
+  border: 2px solid rgba(142, 228, 168, 0.35);
+  border-top-color: var(--accent-2);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

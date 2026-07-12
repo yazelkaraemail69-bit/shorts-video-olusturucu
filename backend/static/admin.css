@@ -100,19 +100,24 @@
 }
 
 .pill-on {
-  background: rgba(61, 155, 122, 0.25);
-  color: #9fe0c6;
+  background: rgba(142, 228, 168, 0.45);
+  color: var(--accent-text);
 }
 
 .pill-off {
-  background: rgba(224, 122, 106, 0.2);
-  color: #e07a6a;
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--danger);
 }
 
 .pill-admin {
-  background: rgba(226, 168, 74, 0.22);
-  color: var(--accent);
+  background: rgba(110, 214, 138, 0.35);
+  color: #166534;
   margin-left: 0.35rem;
+}
+
+.admin-card,
+.stat {
+  box-shadow: 0 6px 20px rgba(20, 83, 45, 0.05);
 }
 
 .topbar a.ghost-btn {
