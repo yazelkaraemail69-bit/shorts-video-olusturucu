@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.models import User
+from app.services.director.cliche_guard import detect_cliches
 from app.services.director.integration import resolve_openrouter_key, verify_openrouter
 from app.services.refine import refine_script
 
@@ -42,6 +43,11 @@ def build_critique_report(script: dict[str, Any], *, is_mock: bool = False) -> d
     if len(narrations) >= 2 and len(set(narrations)) < len(narrations):
         risks.append("Bazı sahnelerde anlatım tekrarı var.")
         suggestions.append("Tekrarlayan narration’ları farklı role göre yeniden yaz.")
+
+    clichés = detect_cliches(script)
+    if clichés:
+        risks.append("Metinde sık kullanılan kalıp ifadeler tespit edildi.")
+        suggestions.append("Hook ve sahneleri daha özgün, konuşma diline yakın yeniden yaz.")
 
     for s in scenes:
         if not s.get("visual") or len(str(s.get("visual"))) < 20:

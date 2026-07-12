@@ -260,7 +260,7 @@ function produceCostForDuration(seconds) {
 function updateCostLabels() {
   const convertBtn = $("#convertBtn");
   if (convertBtn && !convertBtn.disabled) {
-    convertBtn.textContent = `AI1: Viral Senaryo Yaz (${state.scenarioCost} kredi)`;
+    convertBtn.textContent = `Viral Senaryo Yaz (${state.scenarioCost} kredi)`;
   }
   const discussBtn = $("#discussBtn");
   if (discussBtn && !discussBtn.disabled) {
@@ -641,7 +641,7 @@ $("#scenarioForm").addEventListener("submit", async (e) => {
   const btn = $("#convertBtn");
   btn.disabled = true;
   btn.textContent = "Çevriliyor…";
-  setWorking(true, "AI1 senaryo yazıyor…");
+  setWorking(true, "Senaryo yazılıyor…");
   const fd = new FormData(e.target);
   try {
     const scenario = await api("/scenarios/professionalize", {
@@ -662,7 +662,7 @@ $("#scenarioForm").addEventListener("submit", async (e) => {
     setError($("#scenarioError"), err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = `AI1: Viral Senaryo Yaz (${state.scenarioCost} kredi)`;
+    btn.textContent = `Viral Senaryo Yaz (${state.scenarioCost} kredi)`;
     setWorking(false);
   }
 });

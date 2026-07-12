@@ -13,6 +13,7 @@ from app.config import get_settings
 from app.models import ApiKey, ApiProvider, User
 from app.security import decrypt_api_key
 from app.services.shorts_prompt import SHORTS_SYSTEM_PROMPT, SHORTS_USER_PREFIX
+from app.services.director.constitution import DIRECTOR_CONSTITUTION
 
 
 def _get_user_openrouter_key(db: Session, user: User) -> str | None:
@@ -268,7 +269,10 @@ async def professionalize_prompt(
     body = {
         "model": settings.openrouter_model,
         "messages": [
-            {"role": "system", "content": SHORTS_SYSTEM_PROMPT},
+            {
+                "role": "system",
+                "content": SHORTS_SYSTEM_PROMPT + "\n\n" + DIRECTOR_CONSTITUTION,
+            },
             {
                 "role": "user",
                 "content": SHORTS_USER_PREFIX
@@ -316,3 +320,59 @@ async def professionalize_prompt(
         )
     script.setdefault("format", "shorts_9x16")
     return script
+
+
+async def chat_completion_json(
+    *,
+    api_key: str,
+    model: str,
+    system: str,
+    user: str,
+    temperature: float = 0.7,
+    timeout: float = 90.0,
+) -> dict[str, Any]:
+    """OpenRouter chat → JSON dict. İç konsey çağrıları için."""
+    settings = get_settings()
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-Title": settings.app_name,
+    }
+    body = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        "temperature": temperature,
+        "response_format": {"type": "json_object"},
+    }
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(
+                f"{settings.openrouter_base_url}/chat/completions",
+                headers=headers,
+                json=body,
+            )
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"OpenRouter bağlantı hatası: {exc}",
+        ) from exc
+
+    if resp.status_code >= 400:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"OpenRouter hata ({resp.status_code}): {resp.text[:400]}",
+        )
+
+    data = resp.json()
+    try:
+        content = data["choices"][0]["message"]["content"]
+        return _extract_json(content)
+    except (KeyError, IndexError, json.JSONDecodeError, TypeError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="OpenRouter yanıtı parse edilemedi",
+        ) from exc

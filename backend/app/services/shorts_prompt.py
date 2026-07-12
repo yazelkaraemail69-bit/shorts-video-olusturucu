@@ -58,6 +58,12 @@ DİL: kullanıcının seçtiği dilde yaz. Marka/ürün adını brief'teki gibi 
 """.strip()
 
 
+SHORTS_SCHEMA_HINT = """
+JSON şeması (zorunlu alanlar): title, format, hook, voiceover_full, music_mood, cta,
+edit_notes, scenes[{index, role, timecode, visual, narration, on_screen_text, cut}]
+""".strip()
+
+
 SHORTS_USER_PREFIX = """
 Aşağıdaki brief'i YouTube Shorts senaryosuna ÇEVİR.
 Brief'i tekrar etme; Shorts uzmanı + video editörü gibi yeniden yaz.

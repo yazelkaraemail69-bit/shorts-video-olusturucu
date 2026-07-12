@@ -13,18 +13,22 @@ from app.config import get_settings
 from app.models import User
 from app.services.director.integration import resolve_openrouter_key
 
-REFINE_SYSTEM = """
+from app.services.director.constitution import DIRECTOR_CONSTITUTION
+
+REFINE_SYSTEM = f"""
 SEN: YouTube Shorts uzmanı + profesyonel video editörüsün.
 Mevcut senaryoyu ve kullanıcının düzeltmesini alacaksın.
 SADECE ilgili alanları değiştir; geri kalanını koru.
 Brief/tekrar yapıştırma YASAK. Shorts ritmini (hook→problem→twist→demo→cta) bozma.
 
+{DIRECTOR_CONSTITUTION}
+
 Yanıt SADECE JSON:
-{
-  "script": { ...güncellenmiş tam senaryo... },
+{{
+  "script": {{ ...güncellenmiş tam senaryo... }},
   "changed_fields": ["scenes[2].narration", "cta"],
   "summary": "kısa Türkçe özet"
-}
+}}
 """.strip()
 
 

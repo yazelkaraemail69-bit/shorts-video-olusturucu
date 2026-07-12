@@ -1,4 +1,4 @@
-"""AI 1 — Senaryo Uzmanı (OpenRouter / Claude)."""
+"""AI 1 — Senaryo Konseyi (AI-A + AI-B tartışma → AI-C denetim)."""
 
 from __future__ import annotations
 
@@ -7,8 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.models import User
-from app.services.director.integration import resolve_openrouter_key, verify_openrouter
-from app.services.openrouter import professionalize_prompt
+from app.services.director.scenario_council import run_scenario_council
 
 
 async def run_scenario_agent(
@@ -22,9 +21,7 @@ async def run_scenario_agent(
     audience: str | None,
     raw_input: str,
 ) -> dict[str, Any]:
-    api_key = resolve_openrouter_key(db, user)
-    check = await verify_openrouter(api_key)
-    script = await professionalize_prompt(
+    return await run_scenario_council(
         db,
         user,
         language=language,
@@ -34,4 +31,3 @@ async def run_scenario_agent(
         audience=audience,
         raw_input=raw_input,
     )
-    return {"script": script, "integration": check, "agent": "AI1_scenario"}
