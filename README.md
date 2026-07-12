@@ -1,6 +1,8 @@
-﻿# Shorts Video Oluşturucu
+﻿# Shorts Video Oluşturucu Projesi
 
 Master AI Yönetmen ile YouTube Shorts / Reels üretim hattı.
+
+**Depo:** https://github.com/yazelkaraemail69-bit/shorts-video-olusturucu
 
 ## Ne yapar?
 

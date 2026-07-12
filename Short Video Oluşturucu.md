@@ -1,4 +1,4 @@
-# Short Video Oluşturucu
+# Short Video Oluşturucu Projesi
 
 Master AI Yönetmen ile YouTube Shorts / Instagram Reels / TikTok video üretim hattı.
 
