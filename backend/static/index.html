@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="/static/logo.svg" type="image/svg+xml" />
 </head>
 <body>
   <div class="bg-orb bg-orb-a" aria-hidden="true"></div>
@@ -15,7 +15,7 @@
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true"></span>
+      <img src="/static/logo.svg" alt="" class="brand-logo" width="28" height="28" aria-hidden="true" />
       <span class="brand-name">Shorts Video Oluşturucu</span>
     </div>
     <div class="topbar-right" id="userBar" hidden>
@@ -29,6 +29,10 @@
   <main>
     <!-- Auth -->
     <section class="panel auth-panel auth-panel--compact" id="authPanel">
+      <div class="auth-brand" aria-hidden="true">
+        <img src="/static/logo.svg" alt="" class="auth-logo" width="56" height="56" />
+      </div>
+
       <div id="authChooser">
         <h1 class="display auth-title">Stüdyoya gir</h1>
         <p class="lede auth-lede">Brief yaz, profesyonel Shorts senaryosuna çevir.</p>
@@ -42,8 +46,12 @@
         <button type="button" class="auth-back ghost-btn" id="authBackLogin" aria-label="Geri dön">← Geri</button>
         <h2 class="auth-form-title">Giriş yap</h2>
         <form id="loginForm" class="stack">
-          <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
+          <label>E-posta <input type="email" name="email" id="loginEmail" required autocomplete="email" /></label>
           <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>
+          <label class="remember-row">
+            <input type="checkbox" name="remember" id="rememberMe" />
+            <span>Beni sonraki girişlerde hatırla</span>
+          </label>
           <button type="submit" class="primary-btn">Giriş yap</button>
         </form>
       </div>
@@ -55,6 +63,10 @@
           <label>İsim <input type="text" name="display_name" maxlength="120" /></label>
           <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
           <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>
+          <label class="remember-row">
+            <input type="checkbox" name="remember" id="rememberMeRegister" checked />
+            <span>Beni sonraki girişlerde hatırla</span>
+          </label>
           <button type="submit" class="primary-btn">Hesap oluştur</button>
         </form>
       </div>

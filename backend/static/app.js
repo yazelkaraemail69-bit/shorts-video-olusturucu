@@ -1,10 +1,46 @@
 const API = "/api";
 const TOKEN_KEY = "vam_token";
+const REMEMBER_KEY = "vam_remember";
+const EMAIL_KEY = "vam_email";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
+function isRemembered() {
+  return localStorage.getItem(REMEMBER_KEY) === "1";
+}
+
+function loadStoredToken() {
+  const sessionToken = sessionStorage.getItem(TOKEN_KEY) || "";
+  if (sessionToken) return sessionToken;
+  if (isRemembered()) {
+    return localStorage.getItem(TOKEN_KEY) || "";
+  }
+  localStorage.removeItem(TOKEN_KEY);
+  return "";
+}
+
+function persistToken(token, remember, email) {
+  sessionStorage.setItem(TOKEN_KEY, token);
+  if (remember) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(REMEMBER_KEY, "1");
+    if (email) localStorage.setItem(EMAIL_KEY, email);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REMEMBER_KEY);
+    localStorage.removeItem(EMAIL_KEY);
+  }
+}
+
+function clearAuthStorage() {
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REMEMBER_KEY);
+  localStorage.removeItem(EMAIL_KEY);
+}
+
 const state = {
-  token: localStorage.getItem(TOKEN_KEY) || "",
+  token: loadStoredToken(),
   user: null,
   scenarioId: null,
   jobId: null,
@@ -145,8 +181,15 @@ function setAuthView(mode) {
   setError($("#authError"), "");
 
   if (mode === "login") {
-    loginView.querySelector("input[name=email]")?.focus();
+    const emailInput = loginView.querySelector("input[name=email]");
+    const rememberInput = $("#rememberMe");
+    const savedEmail = localStorage.getItem(EMAIL_KEY) || "";
+    if (emailInput && savedEmail) emailInput.value = savedEmail;
+    if (rememberInput) rememberInput.checked = isRemembered();
+    emailInput?.focus();
   } else if (mode === "register") {
+    const rememberRegister = $("#rememberMeRegister");
+    if (rememberRegister) rememberRegister.checked = true;
     registerView.querySelector("input[name=display_name]")?.focus();
   }
 }
@@ -250,7 +293,7 @@ async function boot() {
     await loadHistory();
   } catch {
     state.token = "";
-    localStorage.removeItem(TOKEN_KEY);
+    clearAuthStorage();
     showAuth();
     await loadPricing();
   }
@@ -277,7 +320,9 @@ $("#loginForm").addEventListener("submit", async (e) => {
       body: { email: fd.get("email"), password: fd.get("password") },
     });
     state.token = data.access_token;
-    localStorage.setItem(TOKEN_KEY, state.token);
+    const remember = fd.get("remember") === "on";
+    const email = String(fd.get("email") || "").trim();
+    persistToken(state.token, remember, email);
     await refreshMe();
     showStudio();
     await loadHistory();
@@ -302,7 +347,9 @@ $("#registerForm").addEventListener("submit", async (e) => {
       },
     });
     state.token = data.access_token;
-    localStorage.setItem(TOKEN_KEY, state.token);
+    const remember = fd.get("remember") === "on";
+    const email = String(fd.get("email") || "").trim();
+    persistToken(state.token, remember, email);
     await refreshMe();
     showStudio();
     await loadHistory();
@@ -314,7 +361,7 @@ $("#registerForm").addEventListener("submit", async (e) => {
 $("#logoutBtn").addEventListener("click", () => {
   state.token = "";
   state.user = null;
-  localStorage.removeItem(TOKEN_KEY);
+  clearAuthStorage();
   showAuth();
 });
 

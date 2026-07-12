@@ -1,8 +1,19 @@
 const API = "/api";
 const TOKEN_KEY = "vam_token";
+const REMEMBER_KEY = "vam_remember";
 
 const $ = (sel) => document.querySelector(sel);
-const token = localStorage.getItem(TOKEN_KEY) || "";
+
+function loadStoredToken() {
+  const sessionToken = sessionStorage.getItem(TOKEN_KEY) || "";
+  if (sessionToken) return sessionToken;
+  if (localStorage.getItem(REMEMBER_KEY) === "1") {
+    return localStorage.getItem(TOKEN_KEY) || "";
+  }
+  return "";
+}
+
+const token = loadStoredToken();
 
 async function api(path, { method = "GET", body } = {}) {
   const headers = { "Content-Type": "application/json" };
@@ -126,7 +137,10 @@ async function load() {
 }
 
 $("#logoutBtn").addEventListener("click", () => {
+  sessionStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REMEMBER_KEY);
+  localStorage.removeItem("vam_email");
   location.href = "/";
 });
 
