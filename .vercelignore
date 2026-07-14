@@ -1,0 +1,13 @@
+# Backend (Python FastAPI) — Vercel'de deploy edilmez, ayrı sunucuda çalışır
+backend/
+data/
+
+# Gereksiz dosyalar
+*.md
+*.mdx
+.env
+.env.example
+.env.local
+.DS_Store
+.gitattributes
+node_modules/
