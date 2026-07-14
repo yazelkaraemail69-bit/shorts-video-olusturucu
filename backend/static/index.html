@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shorts Video Oluşturucu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="/static/logo.svg" type="image/svg+xml" />
+</head>
+<body>
+  <div class="bg-orb bg-orb-a" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-b" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Shorts Video Oluşturucu</span>
+    </div>
+    <div class="topbar-right" id="userBar" hidden>
+      <span class="credit-chip" id="creditChip">— kredi</span>
+      <a class="ghost-btn" id="adminLink" href="/admin" hidden>Admin</a>
+      <button type="button" class="ghost-btn" id="settingsBtn">Ayarlar</button>
+      <button type="button" class="ghost-btn" id="logoutBtn">Çıkış</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Auth -->
+    <section class="panel auth-panel auth-panel--compact" id="authPanel">
+      <div class="auth-brand" aria-hidden="true">
+        <img src="/static/logo.svg" alt="" class="auth-logo" width="56" height="56" />
+      </div>
+
+      <div id="authChooser">
+        <h1 class="display auth-title">Stüdyoya gir</h1>
+        <p class="lede auth-lede">Brief yaz, profesyonel Shorts senaryosuna çevir.</p>
+        <div class="auth-choices">
+          <button type="button" class="primary-btn auth-choice-btn" data-auth-mode="login">Giriş yap</button>
+          <button type="button" class="primary-btn auth-choice-btn auth-choice-btn--alt" data-auth-mode="register">Kayıt ol</button>
+        </div>
+      </div>
+
+      <div id="authLoginView" class="auth-form-view" hidden>
+        <button type="button" class="auth-back ghost-btn" id="authBackLogin" aria-label="Geri dön">← Geri</button>
+        <h2 class="auth-form-title">Giriş yap</h2>
+        <form id="loginForm" class="stack">
+          <label>E-posta <input type="email" name="email" id="loginEmail" required autocomplete="email" /></label>
+          <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>
+          <label class="remember-row">
+            <input type="checkbox" name="remember" id="rememberMe" />
+            <span>Beni sonraki girişlerde hatırla</span>
+          </label>
+          <button type="submit" class="primary-btn">Giriş yap</button>
+        </form>
+      </div>
+
+      <div id="authRegisterView" class="auth-form-view" hidden>
+        <button type="button" class="auth-back ghost-btn" id="authBackRegister" aria-label="Geri dön">← Geri</button>
+        <h2 class="auth-form-title">Kayıt ol</h2>
+        <form id="registerForm" class="stack">
+          <label>İsim <input type="text" name="display_name" maxlength="120" /></label>
+          <label>E-posta <input type="email" name="email" required autocomplete="email" /></label>
+          <label>Şifre <input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>
+          <label class="remember-row">
+            <input type="checkbox" name="remember" id="rememberMeRegister" checked />
+            <span>Beni sonraki girişlerde hatırla</span>
+          </label>
+          <button type="submit" class="primary-btn">Hesap oluştur</button>
+        </form>
+      </div>
+
+      <p class="form-error" id="authError" hidden></p>
+    </section>
+
+    <!-- Studio -->
+    <section class="studio" id="studioPanel" hidden>
+      <div class="studio-grid">
+        <div class="compose">
+          <h1 class="display">Senaryo stüdyosu</h1>
+          <p class="lede">Fikir notunu yaz; sistem Shorts uzmanı gibi hook→payoff senaryosuna çevirir (metni tekrar etmez).</p>
+
+          <form id="scenarioForm" class="stack compose-form">
+            <div class="row-2">
+              <label>Dil
+                <select name="language" id="language">
+                  <option value="tr">Türkçe</option>
+                  <option value="en">English</option>
+                  <option value="de">Deutsch</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                </select>
+              </label>
+              <label>Süre (sn)
+                <input type="number" name="duration_seconds" value="30" min="5" max="300" />
+              </label>
+            </div>
+            <div class="row-2">
+              <label>Başlık (opsiyonel)
+                <input type="text" name="title" maxlength="200" placeholder="Örn. Yaz kampanyası" />
+              </label>
+              <label>Üslup
+                <select name="style">
+                  <option value="shorts-punchy">Shorts · punchy</option>
+                  <option value="sinematik">Sinematik</option>
+                  <option value="enerjik">Enerjik</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="eğitici">Eğitici</option>
+                </select>
+              </label>
+            </div>
+            <label>Hedef kitle (opsiyonel)
+              <input type="text" name="audience" maxlength="200" placeholder="Örn. 25–40 yaş girişimciler" />
+            </label>
+            <div class="source-block stack" id="sourceBlock">
+              <h3 class="history-title">Kaynak paketi (opsiyonel)</h3>
+              <p class="lede tight">Video linki, görsel veya PDF yükle — kaynaklar taranır ve senaryo buna göre yazılır.</p>
+              <label>Paket adı
+                <input type="text" id="sourcePackName" maxlength="200" placeholder="Örn. Yaz kampanyası kaynakları" />
+              </label>
+              <div class="row-2">
+                <button type="button" class="ghost-btn" id="createSourcePackBtn">Paket oluştur</button>
+                <select id="sourcePackSelect">
+                  <option value="">Kaynak paketi seçme</option>
+                </select>
+              </div>
+              <label>Video / referans linki
+                <input type="url" id="sourceVideoUrl" placeholder="https://…" />
+              </label>
+              <button type="button" class="ghost-btn" id="addSourceUrlBtn">Link ekle</button>
+              <label>Dosya (görsel, PDF)
+                <input type="file" id="sourceFileInput" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.md" />
+              </label>
+              <button type="button" class="ghost-btn" id="uploadSourceFileBtn">Dosya yükle</button>
+              <button type="button" class="primary-btn" id="analyzeSourcePackBtn">Kaynakları tara</button>
+              <p class="lede tight" id="sourcePackStatus">Henüz paket yok.</p>
+            </div>
+            <label>Video brief’i
+              <textarea name="raw_input" rows="5" required minlength="10" maxlength="4000"
+                placeholder="Fikir notu yaz (kopyalanmaz). Örn: kahve markası yaz kampanyası — serinlik + şehir enerjisi"></textarea>
+            </label>
+            <button type="submit" class="primary-btn" id="convertBtn">
+              Viral Senaryo Yaz (15 kredi)
+            </button>
+            <p class="form-error" id="scenarioError" hidden></p>
+          </form>
+
+          <div class="history-block" id="historyBlock">
+            <h3 class="history-title">Geçmiş senaryolar</h3>
+            <div class="history-list" id="historyList">
+              <p class="lede tight">Henüz kayıt yok.</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="result" id="resultPanel" aria-live="polite">
+          <div class="result-empty" id="resultEmpty">
+            <p>Henüz senaryo yok. Soldan brief yazıp çevir.</p>
+          </div>
+          <div id="resultContent" hidden>
+            <div class="result-head">
+              <h2 id="resultTitle"></h2>
+              <span class="badge" id="resultBadge" hidden>mock</span>
+            </div>
+            <p class="hook" id="resultHook"></p>
+            <div class="meta-line" id="resultMeta"></div>
+            <h3>Seslendirme</h3>
+            <p class="voiceover" id="resultVoice"></p>
+            <h3>Sahneler</h3>
+            <ol class="scenes" id="resultScenes"></ol>
+            <div class="result-foot">
+              <div><strong>Müzik:</strong> <span id="resultMusic"></span></div>
+              <div><strong>CTA:</strong> <span id="resultCta"></span></div>
+            </div>
+            <p class="scenario-id">Senaryo #<span id="resultId"></span> kaydedildi</p>
+            <div class="copy-actions">
+              <button type="button" class="ghost-btn" id="unlockCopyBtn" hidden>Kopyalamayı aç (5 kredi)</button>
+              <button type="button" class="primary-btn" id="copyScenarioBtn" hidden>Senaryoyu kopyala</button>
+            </div>
+            <p class="form-error" id="copyError" hidden></p>
+            <p class="copy-hint" id="copyHint" hidden>Kilitli önizleme — tam metni kopyalamak için kredi harca.</p>
+
+            <div class="scenario-discuss stack" id="scenarioDiscuss">
+              <h3>Tartışma paneli</h3>
+              <p class="lede tight">Yönetmenle senaryoyu konuş. Notun ilgili sahneye uygulanır.</p>
+              <div class="discuss-thread" id="discussThread"></div>
+              <label>Mesajın
+                <textarea id="discussInput" rows="3" maxlength="2000"
+                  placeholder="Örn. Hook daha sert olsun / Sahne 3 anlatımını kısalt / CTA’yı değiştir"></textarea>
+              </label>
+              <button type="button" class="primary-btn" id="discussBtn">Gönder & uygula (10 kredi)</button>
+              <p class="form-error" id="discussError" hidden></p>
+            </div>
+
+            <button type="button" class="primary-btn produce-btn" id="produceBtn">
+              AI2+AI3: Görsel Üret & Kurguya Ver (100 kredi)
+            </button>
+            <p class="form-error" id="produceError" hidden></p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Modül 3/4: video + geliştir -->
+      <section class="player-section" id="playerSection" hidden>
+        <div class="player-grid">
+          <div class="player-frame">
+            <div class="player-head">
+              <h2 class="display small">Shorts önizleme</h2>
+              <span class="badge" id="jobBadge" hidden>mock</span>
+              <span class="meta-line" id="jobMeta"></span>
+            </div>
+            <iframe id="previewFrame" title="HTML yedek" class="preview-frame" hidden></iframe>
+            <video id="videoPlayer" class="preview-frame" controls playsinline preload="metadata"></video>
+            <a id="downloadVideo" class="ghost-btn" href="#" download hidden style="margin-top:.6rem;text-align:center;text-decoration:none">MP4 indir</a>
+            <audio id="audioPlayer" controls class="audio-player" hidden></audio>
+          </div>
+          <div class="refine-panel stack">
+            <h3>Eleştiri & Geliştir</h3>
+            <div id="critiqueBox" class="critique-box" hidden></div>
+            <div id="sceneThumbs" class="scene-thumbs"></div>
+            <p class="lede tight">Yönetmene söyle: yalnız ilgili sahne/görsel/metin güncellenir, kurgu yeniden birleşir.</p>
+            <label>Eleştirin
+              <textarea id="refineInput" rows="4" maxlength="2000"
+                placeholder="Örn. Sahne 2 çok yavaş / Hook daha çarpıcı olsun / Sahne 3 görselini daha sinematik yap"></textarea>
+            </label>
+            <button type="button" class="primary-btn" id="refineBtn">Revize et (35 kredi)</button>
+            <p class="form-error" id="refineError" hidden></p>
+            <div id="revisionList" class="revision-list"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Settings modal -->
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-inner stack" id="settingsForm">
+      <h2>API anahtarları</h2>
+      <p class="lede tight">Anahtarlar sunucuda Fernet ile şifrelenir; arayüzde yalnızca son 4 karakter görünür.</p>
+      <label>OpenRouter
+        <input type="password" name="openrouter" placeholder="sk-or-v1-…" autocomplete="off" />
+      </label>
+      <label>ElevenLabs (Modül 3)
+        <input type="password" name="elevenlabs" placeholder="xi-…" autocomplete="off" />
+      </label>
+      <div id="savedKeys" class="saved-keys"></div>
+      <p class="form-error" id="settingsError" hidden></p>
+      <div class="dialog-actions">
+        <button type="submit" class="primary-btn" value="save" id="saveKeysBtn">Kaydet</button>
+        <button type="button" class="ghost-btn" id="closeSettingsBtn">Kapat</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="work-overlay" id="workOverlay" hidden>
+    <div class="work-card">
+      <div class="work-spinner" aria-hidden="true"></div>
+      <p id="workOverlayText">Çalışıyor…</p>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
