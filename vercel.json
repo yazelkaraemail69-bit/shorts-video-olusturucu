@@ -1,7 +1,22 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "ignoreCommand": "echo 'Skipping backend folder for Vercel'"
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.12",
+      "memory": 512,
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/auth/(.*)", "destination": "/api/auth/$1" },
+    { "source": "/api/scenarios/(.*)", "destination": "/api/scenarios/$1" },
+    { "source": "/api/jobs/(.*)", "destination": "/api/jobs/$1" },
+    { "source": "/api/credits/(.*)", "destination": "/api/credits/$1" },
+    { "source": "/api/keys/(.*)", "destination": "/api/keys/$1" },
+    { "source": "/api/sources/(.*)", "destination": "/api/sources/$1" },
+    { "source": "/api/admin/(.*)", "destination": "/api/admin/$1" },
+    { "source": "/api/batch/(.*)", "destination": "/api/batch/$1" },
+    { "source": "/api/media/(.*)", "destination": "/api/media/$1" },
+    { "source": "/((?!api/).*)", "destination": "/" }
+  ]
 }
